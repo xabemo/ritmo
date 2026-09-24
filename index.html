@@ -514,7 +514,7 @@
     async function loadProfile(user) {
 
       const { data, error } =
-        await supabaseClient
+        await supabase
           .from('profiles')
           .select('name, role')
           .eq('id', user.id)
