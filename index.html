@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <meta name="theme-color" content="#0b0b0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <title>Ritmo</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #0b0b0f;
+      color: #f5f5f7;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "SF Pro Text",
+        Arial,
+        sans-serif;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen {
+      flex: 1;
+      padding: 28px 20px 100px;
+      max-width: 600px;
+      width: 100%;
+      margin: auto;
+    }
+
+    /* LOGIN */
+
+    #loginScreen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 45px;
+    }
+
+    .logo-mark {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 18px;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, #8b5cf6, #5b21b6);
+      font-size: 34px;
+      font-weight: 700;
+      box-shadow: 0 15px 40px rgba(124, 58, 237, .25);
+    }
+
+    .logo h1 {
+      margin: 0;
+      font-size: 38px;
+      letter-spacing: -1.5px;
+    }
+
+    .logo p {
+      color: #8e8e98;
+      margin-top: 8px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      color: #a1a1aa;
+      font-size: 14px;
+    }
+
+    .field input {
+      width: 100%;
+      height: 56px;
+      border: 1px solid #29292f;
+      border-radius: 16px;
+      background: #17171c;
+      color: white;
+      padding: 0 16px;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: #8b5cf6;
+    }
+
+    .primary-button {
+      width: 100%;
+      height: 56px;
+      margin-top: 8px;
+      border: 0;
+      border-radius: 16px;
+      background: #8b5cf6;
+      color: white;
+      font-weight: 700;
+      font-size: 17px;
+      cursor: pointer;
+    }
+
+    .primary-button:active {
+      transform: scale(.98);
+    }
+
+    .error {
+      margin-top: 16px;
+      padding: 13px;
+      border-radius: 14px;
+      background: #32171b;
+      color: #ff8c9a;
+      font-size: 14px;
+      display: none;
+    }
+
+    /* HOME */
+
+    #homeScreen {
+      display: none;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .greeting {
+      color: #8e8e98;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .user-name {
+      font-size: 27px;
+      font-weight: 700;
+      letter-spacing: -.6px;
+    }
+
+    .avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #202027;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #c4b5fd;
+    }
+
+    .section-title {
+      font-size: 14px;
+      color: #8e8e98;
+      margin-bottom: 10px;
+    }
+
+    .empty-card {
+      background: #15151a;
+      border: 1px solid #24242b;
+      border-radius: 22px;
+      padding: 28px 20px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+    }
+
+    .empty-card h2 {
+      margin: 0 0 8px;
+      font-size: 20px;
+    }
+
+    .empty-card p {
+      margin: 0;
+      color: #888892;
+      line-height: 1.5;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .action {
+      border: 0;
+      border-radius: 18px;
+      padding: 18px 14px;
+      text-align: left;
+      color: white;
+      background: #19191f;
+      border: 1px solid #29292f;
+    }
+
+    .action-icon {
+      font-size: 25px;
+      margin-bottom: 10px;
+    }
+
+    .action-title {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .action-subtitle {
+      color: #888892;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: calc(70px + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom);
+      background: rgba(14, 14, 18, .94);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid #24242b;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .nav-item {
+      background: none;
+      border: 0;
+      color: #777780;
+      font-size: 12px;
+      padding: 8px 18px;
+    }
+
+    .nav-item.active {
+      color: #a78bfa;
+    }
+
+    .logout {
+      margin-top: 35px;
+      width: 100%;
+      background: transparent;
+      border: 1px solid #29292f;
+      color: #9999a3;
+      height: 50px;
+      border-radius: 15px;
+    }
+
+    .loading {
+      position: fixed;
+      inset: 0;
+      background: #0b0b0f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      font-size: 20px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="loading" class="loading">
+    Ritmo
+  </div>
+
+  <!-- LOGIN -->
+
+  <main id="loginScreen" class="screen">
+
+    <div class="login-box">
+
+      <div class="logo">
+        <div class="logo-mark">R</div>
+        <h1>Ritmo</h1>
+        <p>Control de tus actuaciones</p>
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <input
+          id="email"
+          type="email"
+          autocomplete="email"
+          placeholder="tu@email.com"
+        >
+      </div>
+
+      <div class="field">
+        <label>Contraseña</label>
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="••••••••"
+        >
+      </div>
+
+      <button id="loginButton" class="primary-button">
+        Entrar
+      </button>
+
+      <div id="loginError" class="error"></div>
+
+    </div>
+
+  </main>
+
+
+  <!-- HOME -->
+
+  <main id="homeScreen" class="screen">
+
+    <div class="topbar">
+
+      <div>
+        <div class="greeting">Buenos días</div>
+        <div id="userName" class="user-name">Músico</div>
+      </div>
+
+      <div id="avatar" class="avatar">R</div>
+
+    </div>
+
+
+    <div class="section-title">
+      PRÓXIMA ACTUACIÓN
+    </div>
+
+    <div class="empty-card">
+
+      <div class="empty-icon">🎤</div>
+
+      <h2>Aún no tienes bolos</h2>
+
+      <p>
+        Cuando añadas tu primera actuación
+        aparecerá aquí.
+      </p>
+
+    </div>
+
+
+    <div class="quick-actions">
+
+      <button class="action">
+        <div class="action-icon">＋</div>
+        <div class="action-title">Bolo</div>
+        <div class="action-subtitle">
+          Añadir actuación
+        </div>
+      </button>
+
+      <button class="action">
+        <div class="action-icon">€</div>
+        <div class="action-title">Cobro</div>
+        <div class="action-subtitle">
+          Registrar dinero
+        </div>
+      </button>
+
+    </div>
+
+
+    <button id="logoutButton" class="logout">
+      Cerrar sesión
+    </button>
+
+  </main>
+
+
+  <!-- NAVEGACIÓN -->
+
+  <nav id="bottomNav" class="bottom-nav" style="display:none">
+
+    <button class="nav-item active">
+      🏠<br>
+      Inicio
+    </button>
+
+    <button class="nav-item">
+      📅<br>
+      Calendario
+    </button>
+
+    <button class="nav-item">
+      ⋯<br>
+      Más
+    </button>
+
+  </nav>
+
+
+  <script>
+
+    const SUPABASE_URL =
+      'https://liovspyunqdfthcdjxzi.supabase.co';
+
+    const SUPABASE_KEY =
+      'sb_publishable_ciY-lcMXhggeBwdsbcrscw_LRYy_TdC';
+
+
+    const { createClient } =
+      supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+
+    const loading =
+      document.getElementById('loading');
+
+    const loginScreen =
+      document.getElementById('loginScreen');
+
+    const homeScreen =
+      document.getElementById('homeScreen');
+
+    const bottomNav =
+      document.getElementById('bottomNav');
+
+    const loginButton =
+      document.getElementById('loginButton');
+
+    const loginError =
+      document.getElementById('loginError');
+
+    const logoutButton =
+      document.getElementById('logoutButton');
+
+
+    function showLogin() {
+
+      loading.style.display = 'none';
+
+      loginScreen.style.display = 'flex';
+
+      homeScreen.style.display = 'none';
+
+      bottomNav.style.display = 'none';
+
+    }
+
+
+    function showHome(profile) {
+
+      loading.style.display = 'none';
+
+      loginScreen.style.display = 'none';
+
+      homeScreen.style.display = 'block';
+
+      bottomNav.style.display = 'flex';
+
+
+      const name =
+        profile?.name ||
+        'Músico';
+
+      document.getElementById(
+        'userName'
+      ).textContent = name;
+
+
+      document.getElementById(
+        'avatar'
+      ).textContent =
+        name.charAt(0).toUpperCase();
+
+    }
+
+
+    async function loadProfile(user) {
+
+      const { data, error } =
+        await supabaseClient
+          .from('profiles')
+          .select('name, role')
+          .eq('id', user.id)
+          .single();
+
+
+      if (error) {
+
+        console.error(error);
+
+        showHome({
+          name: user.email
+        });
+
+        return;
+
+      }
+
+
+      showHome(data);
+
+    }
+
+
+    loginButton.addEventListener(
+      'click',
+      async () => {
+
+        loginError.style.display = 'none';
+
+        const email =
+          document.getElementById(
+            'email'
+          ).value.trim();
+
+        const password =
+          document.getElementById(
+            'password'
+          ).value;
+
+
+        if (!email || !password) {
+
+          loginError.textContent =
+            'Introduce email y contraseña.';
+
+          loginError.style.display =
+            'block';
+
+          return;
+
+        }
+
+
+        loginButton.disabled = true;
+
+        loginButton.textContent =
+          'Entrando...';
+
+
+        const { data, error } =
+          await supabase.auth.signInWithPassword({
+            email,
+            password
+          });
+
+
+        if (error) {
+
+          loginError.textContent =
+            'Email o contraseña incorrectos.';
+
+          loginError.style.display =
+            'block';
+
+          loginButton.disabled = false;
+
+          loginButton.textContent =
+            'Entrar';
+
+          return;
+
+        }
+
+
+        await loadProfile(data.user);
+
+
+        loginButton.disabled = false;
+
+        loginButton.textContent =
+          'Entrar';
+
+      }
+    );
+
+
+    logoutButton.addEventListener(
+      'click',
+      async () => {
+
+        await supabase.auth.signOut();
+
+        showLogin();
+
+      }
+    );
+
+
+    supabase.auth.onAuthStateChange(
+      async (event, session) => {
+
+        if (session?.user) {
+
+          await loadProfile(
+            session.user
+          );
+
+        } else {
+
+          showLogin();
+
+        }
+
+      }
+    );
+
+  </script>
+
+</body>
+</html>
