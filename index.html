@@ -2,25 +2,41 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
 
   <meta name="theme-color" content="#0b0b0f">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  >
+
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+  >
 
   <title>Ritmo</title>
 
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
     }
 
+    html,
     body {
       margin: 0;
-      min-height: 100vh;
+      padding: 0;
+      min-height: 100%;
       background: #0b0b0f;
       color: #f5f5f7;
       font-family:
@@ -32,32 +48,64 @@
         sans-serif;
     }
 
+    body {
+      min-height: 100vh;
+    }
+
     button,
     input {
       font: inherit;
     }
 
-    .app {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+    button {
+      cursor: pointer;
     }
 
-    .screen {
-      flex: 1;
-      padding: 28px 20px 100px;
-      max-width: 600px;
-      width: 100%;
-      margin: auto;
-    }
+    /* =========================
+       CARGANDO
+       ========================= */
 
-    /* LOGIN */
+    #loading {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
 
-    #loginScreen {
       display: flex;
       align-items: center;
       justify-content: center;
+
+      background: #0b0b0f;
+
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -1px;
+    }
+
+    /* =========================
+       ESTRUCTURA
+       ========================= */
+
+    .screen {
+      width: 100%;
+      max-width: 600px;
       min-height: 100vh;
+      margin: 0 auto;
+
+      padding:
+        30px
+        20px
+        calc(100px + env(safe-area-inset-bottom));
+    }
+
+    /* =========================
+       LOGIN
+       ========================= */
+
+    #loginScreen {
+      display: none;
+
+      align-items: center;
+      justify-content: center;
     }
 
     .login-box {
@@ -67,54 +115,87 @@
 
     .logo {
       text-align: center;
-      margin-bottom: 45px;
+      margin-bottom: 42px;
     }
 
     .logo-mark {
-      width: 72px;
-      height: 72px;
+      width: 74px;
+      height: 74px;
+
       margin: 0 auto 18px;
-      border-radius: 22px;
+
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(145deg, #8b5cf6, #5b21b6);
+
+      border-radius: 23px;
+
+      background:
+        linear-gradient(
+          145deg,
+          #8b5cf6,
+          #5b21b6
+        );
+
       font-size: 34px;
-      font-weight: 700;
-      box-shadow: 0 15px 40px rgba(124, 58, 237, .25);
+      font-weight: 800;
+
+      box-shadow:
+        0 18px 45px
+        rgba(124, 58, 237, .28);
     }
 
     .logo h1 {
       margin: 0;
-      font-size: 38px;
-      letter-spacing: -1.5px;
+
+      font-size: 40px;
+      line-height: 1;
+
+      letter-spacing: -1.8px;
     }
 
     .logo p {
+      margin: 10px 0 0;
+
       color: #8e8e98;
-      margin-top: 8px;
+
+      font-size: 15px;
     }
 
     .field {
-      margin-bottom: 16px;
+      margin-bottom: 17px;
     }
 
     .field label {
       display: block;
+
       margin-bottom: 8px;
+
       color: #a1a1aa;
+
       font-size: 14px;
     }
 
     .field input {
       width: 100%;
       height: 56px;
-      border: 1px solid #29292f;
-      border-radius: 16px;
-      background: #17171c;
-      color: white;
+
       padding: 0 16px;
+
+      border:
+        1px solid
+        #29292f;
+
+      border-radius: 16px;
+
       outline: none;
+
+      background: #17171c;
+      color: #ffffff;
+
+      font-size: 16px;
+
+      -webkit-appearance: none;
     }
 
     .field input:focus {
@@ -124,31 +205,49 @@
     .primary-button {
       width: 100%;
       height: 56px;
-      margin-top: 8px;
+
+      margin-top: 7px;
+
       border: 0;
       border-radius: 16px;
+
       background: #8b5cf6;
-      color: white;
-      font-weight: 700;
+      color: #ffffff;
+
       font-size: 17px;
-      cursor: pointer;
+      font-weight: 700;
+
+      transition:
+        transform .15s,
+        opacity .15s;
     }
 
     .primary-button:active {
       transform: scale(.98);
     }
 
-    .error {
-      margin-top: 16px;
-      padding: 13px;
-      border-radius: 14px;
-      background: #32171b;
-      color: #ff8c9a;
-      font-size: 14px;
-      display: none;
+    .primary-button:disabled {
+      opacity: .55;
     }
 
-    /* HOME */
+    .error {
+      display: none;
+
+      margin-top: 15px;
+      padding: 13px 14px;
+
+      border-radius: 14px;
+
+      background: #32171b;
+      color: #ff8c9a;
+
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    /* =========================
+       INICIO
+       ========================= */
 
     #homeScreen {
       display: none;
@@ -156,210 +255,352 @@
 
     .topbar {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 30px;
+      justify-content: space-between;
+
+      margin-bottom: 32px;
     }
 
     .greeting {
-      color: #8e8e98;
-      font-size: 14px;
       margin-bottom: 4px;
+
+      color: #8e8e98;
+
+      font-size: 14px;
     }
 
     .user-name {
-      font-size: 27px;
+      font-size: 28px;
       font-weight: 700;
-      letter-spacing: -.6px;
+
+      letter-spacing: -.7px;
     }
 
     .avatar {
-      width: 46px;
-      height: 46px;
-      border-radius: 50%;
-      background: #202027;
+      width: 48px;
+      height: 48px;
+
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
+
+      border-radius: 50%;
+
+      background: #202027;
       color: #c4b5fd;
+
+      font-size: 18px;
+      font-weight: 700;
     }
 
     .section-title {
-      font-size: 14px;
-      color: #8e8e98;
       margin-bottom: 10px;
+
+      color: #8e8e98;
+
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .5px;
     }
 
     .empty-card {
-      background: #15151a;
-      border: 1px solid #24242b;
+      padding: 30px 20px;
+
+      border:
+        1px solid
+        #24242b;
+
       border-radius: 22px;
-      padding: 28px 20px;
+
+      background: #15151a;
+
       text-align: center;
     }
 
     .empty-icon {
-      font-size: 36px;
       margin-bottom: 12px;
+
+      font-size: 38px;
     }
 
     .empty-card h2 {
       margin: 0 0 8px;
+
       font-size: 20px;
     }
 
     .empty-card p {
       margin: 0;
+
       color: #888892;
+
       line-height: 1.5;
     }
 
+    /* =========================
+       BOTONES RÁPIDOS
+       ========================= */
+
     .quick-actions {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+
+      grid-template-columns:
+        1fr 1fr;
+
       gap: 12px;
+
       margin-top: 20px;
     }
 
     .action {
-      border: 0;
-      border-radius: 18px;
-      padding: 18px 14px;
-      text-align: left;
-      color: white;
+      min-height: 125px;
+
+      padding: 18px 15px;
+
+      border:
+        1px solid
+        #29292f;
+
+      border-radius: 19px;
+
       background: #19191f;
-      border: 1px solid #29292f;
+      color: #ffffff;
+
+      text-align: left;
+    }
+
+    .action:active {
+      transform: scale(.98);
     }
 
     .action-icon {
-      font-size: 25px;
       margin-bottom: 10px;
+
+      font-size: 25px;
     }
 
     .action-title {
+      font-size: 17px;
       font-weight: 700;
-      font-size: 16px;
     }
 
     .action-subtitle {
-      color: #888892;
-      font-size: 12px;
       margin-top: 4px;
+
+      color: #888892;
+
+      font-size: 12px;
+    }
+
+    /* =========================
+       LOGOUT
+       ========================= */
+
+    .logout {
+      width: 100%;
+      height: 50px;
+
+      margin-top: 35px;
+
+      border:
+        1px solid
+        #29292f;
+
+      border-radius: 15px;
+
+      background: transparent;
+      color: #9999a3;
+
+      font-size: 14px;
+    }
+
+    /* =========================
+       NAVIGACIÓN
+       ========================= */
+
+    #bottomNav {
+      display: none;
     }
 
     .bottom-nav {
       position: fixed;
+
       left: 0;
       right: 0;
       bottom: 0;
-      height: calc(70px + env(safe-area-inset-bottom));
-      padding-bottom: env(safe-area-inset-bottom);
-      background: rgba(14, 14, 18, .94);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid #24242b;
+
+      z-index: 1000;
+
+      height:
+        calc(
+          70px +
+          env(safe-area-inset-bottom)
+        );
+
+      padding-bottom:
+        env(safe-area-inset-bottom);
+
       display: flex;
-      justify-content: space-around;
       align-items: center;
+      justify-content: space-around;
+
+      background:
+        rgba(14, 14, 18, .94);
+
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+
+      border-top:
+        1px solid
+        #24242b;
     }
 
     .nav-item {
-      background: none;
+      min-width: 70px;
+
+      padding: 7px 12px;
+
       border: 0;
+
+      background: transparent;
       color: #777780;
+
       font-size: 12px;
-      padding: 8px 18px;
+      line-height: 1.5;
+
+      text-align: center;
     }
 
     .nav-item.active {
       color: #a78bfa;
     }
 
-    .logout {
-      margin-top: 35px;
-      width: 100%;
-      background: transparent;
-      border: 1px solid #29292f;
-      color: #9999a3;
-      height: 50px;
-      border-radius: 15px;
-    }
-
-    .loading {
-      position: fixed;
-      inset: 0;
-      background: #0b0b0f;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      font-size: 20px;
-      font-weight: 700;
-    }
   </style>
 </head>
 
+
 <body>
 
-  <div id="loading" class="loading">
+  <!-- =========================
+       CARGANDO
+       ========================= -->
+
+  <div id="loading">
     Ritmo
   </div>
 
-  <!-- LOGIN -->
 
-  <main id="loginScreen" class="screen">
+  <!-- =========================
+       LOGIN
+       ========================= -->
+
+  <main
+    id="loginScreen"
+    class="screen"
+  >
 
     <div class="login-box">
 
       <div class="logo">
-        <div class="logo-mark">R</div>
-        <h1>Ritmo</h1>
-        <p>Control de tus actuaciones</p>
+
+        <div class="logo-mark">
+          R
+        </div>
+
+        <h1>
+          Ritmo
+        </h1>
+
+        <p>
+          Control de tus actuaciones
+        </p>
+
       </div>
 
+
       <div class="field">
-        <label>Email</label>
+
+        <label for="email">
+          Email
+        </label>
+
         <input
           id="email"
           type="email"
           autocomplete="email"
           placeholder="tu@email.com"
         >
+
       </div>
 
+
       <div class="field">
-        <label>Contraseña</label>
+
+        <label for="password">
+          Contraseña
+        </label>
+
         <input
           id="password"
           type="password"
           autocomplete="current-password"
           placeholder="••••••••"
         >
+
       </div>
 
-      <button id="loginButton" class="primary-button">
+
+      <button
+        id="loginButton"
+        class="primary-button"
+      >
         Entrar
       </button>
 
-      <div id="loginError" class="error"></div>
+
+      <div
+        id="loginError"
+        class="error"
+      ></div>
 
     </div>
 
   </main>
 
 
-  <!-- HOME -->
+  <!-- =========================
+       INICIO
+       ========================= -->
 
-  <main id="homeScreen" class="screen">
+  <main
+    id="homeScreen"
+    class="screen"
+  >
 
     <div class="topbar">
 
       <div>
-        <div class="greeting">Buenos días</div>
-        <div id="userName" class="user-name">Músico</div>
+
+        <div class="greeting">
+          Buenos días
+        </div>
+
+        <div
+          id="userName"
+          class="user-name"
+        >
+          Músico
+        </div>
+
       </div>
 
-      <div id="avatar" class="avatar">R</div>
+
+      <div
+        id="avatar"
+        class="avatar"
+      >
+        R
+      </div>
 
     </div>
 
@@ -368,15 +609,20 @@
       PRÓXIMA ACTUACIÓN
     </div>
 
+
     <div class="empty-card">
 
-      <div class="empty-icon">🎤</div>
+      <div class="empty-icon">
+        🎤
+      </div>
 
-      <h2>Aún no tienes bolos</h2>
+      <h2>
+        Aún no tienes bolos
+      </h2>
 
       <p>
-        Cuando añadas tu primera actuación
-        aparecerá aquí.
+        Cuando añadas tu primera
+        actuación aparecerá aquí.
       </p>
 
     </div>
@@ -384,47 +630,90 @@
 
     <div class="quick-actions">
 
-      <button class="action">
-        <div class="action-icon">＋</div>
-        <div class="action-title">Bolo</div>
+      <button
+        class="action"
+        type="button"
+      >
+
+        <div class="action-icon">
+          ＋
+        </div>
+
+        <div class="action-title">
+          Bolo
+        </div>
+
         <div class="action-subtitle">
           Añadir actuación
         </div>
+
       </button>
 
-      <button class="action">
-        <div class="action-icon">€</div>
-        <div class="action-title">Cobro</div>
+
+      <button
+        class="action"
+        type="button"
+      >
+
+        <div class="action-icon">
+          €
+        </div>
+
+        <div class="action-title">
+          Cobro
+        </div>
+
         <div class="action-subtitle">
           Registrar dinero
         </div>
+
       </button>
 
     </div>
 
 
-    <button id="logoutButton" class="logout">
+    <button
+      id="logoutButton"
+      class="logout"
+      type="button"
+    >
       Cerrar sesión
     </button>
 
   </main>
 
 
-  <!-- NAVEGACIÓN -->
+  <!-- =========================
+       NAVEGACIÓN
+       ========================= -->
 
-  <nav id="bottomNav" class="bottom-nav" style="display:none">
+  <nav
+    id="bottomNav"
+    class="bottom-nav"
+  >
 
-    <button class="nav-item active">
+    <button
+      class="nav-item active"
+      type="button"
+    >
       🏠<br>
       Inicio
     </button>
 
-    <button class="nav-item">
+
+    <button
+      class="nav-item"
+      type="button"
+    >
       📅<br>
       Calendario
     </button>
 
-    <button class="nav-item">
+
+    <button
+      class="nav-item"
+      type="button"
+    >
       ⋯<br>
       Más
     </button>
@@ -432,21 +721,44 @@
   </nav>
 
 
+  <!-- =========================
+       JAVASCRIPT
+       ========================= -->
+
   <script>
+
+    /*
+      ==========================================================
+      CONFIGURACIÓN SUPABASE
+      ==========================================================
+    */
 
     const SUPABASE_URL =
       'https://liovspyunqdfthcdjxzi.supabase.co';
 
-    const SUPABASE_KEY =
+
+    const SUPABASE_PUBLISHABLE_KEY =
       'sb_publishable_ciY-lcMXhggeBwdsbcrscw_LRYy_TdC';
 
 
-    const { createClient } =
-      supabase.createClient(
+    /*
+      Creamos nuestro cliente con un nombre propio.
+      Así evitamos confundirlo con la librería global
+      de Supabase.
+    */
+
+    const supabaseClient =
+      window.supabase.createClient(
         SUPABASE_URL,
-        SUPABASE_KEY
+        SUPABASE_PUBLISHABLE_KEY
       );
 
+
+    /*
+      ==========================================================
+      ELEMENTOS
+      ==========================================================
+    */
 
     const loading =
       document.getElementById('loading');
@@ -469,6 +781,24 @@
     const logoutButton =
       document.getElementById('logoutButton');
 
+    const emailInput =
+      document.getElementById('email');
+
+    const passwordInput =
+      document.getElementById('password');
+
+    const userName =
+      document.getElementById('userName');
+
+    const avatar =
+      document.getElementById('avatar');
+
+
+    /*
+      ==========================================================
+      MOSTRAR LOGIN
+      ==========================================================
+    */
 
     function showLogin() {
 
@@ -483,7 +813,13 @@
     }
 
 
-    function showHome(profile) {
+    /*
+      ==========================================================
+      MOSTRAR INICIO
+      ==========================================================
+    */
+
+    function showHome(profile, user) {
 
       loading.style.display = 'none';
 
@@ -496,25 +832,34 @@
 
       const name =
         profile?.name ||
+        user?.email ||
         'Músico';
 
-      document.getElementById(
-        'userName'
-      ).textContent = name;
+
+      userName.textContent = name;
 
 
-      document.getElementById(
-        'avatar'
-      ).textContent =
-        name.charAt(0).toUpperCase();
+      avatar.textContent =
+        name
+          .charAt(0)
+          .toUpperCase();
 
     }
 
 
+    /*
+      ==========================================================
+      CARGAR PERFIL
+      ==========================================================
+    */
+
     async function loadProfile(user) {
 
-      const { data, error } =
-        await supabase
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
           .from('profiles')
           .select('name, role')
           .eq('id', user.id)
@@ -523,114 +868,237 @@
 
       if (error) {
 
-        console.error(error);
+        console.error(
+          'Error cargando perfil:',
+          error
+        );
 
-        showHome({
-          name: user.email
-        });
+
+        /*
+          Aunque todavía no exista el perfil,
+          permitimos continuar para poder
+          detectar el problema.
+        */
+
+        showHome(
+          {
+            name: user.email
+          },
+          user
+        );
 
         return;
 
       }
 
 
-      showHome(data);
+      console.log(
+        'Perfil:',
+        data
+      );
+
+
+      showHome(
+        data,
+        user
+      );
 
     }
 
 
-    loginButton.addEventListener(
-      'click',
-      async () => {
+    /*
+      ==========================================================
+      LOGIN
+      ==========================================================
+    */
 
-        loginError.style.display = 'none';
+    async function login() {
 
-        const email =
-          document.getElementById(
-            'email'
-          ).value.trim();
-
-        const password =
-          document.getElementById(
-            'password'
-          ).value;
+      loginError.style.display =
+        'none';
 
 
-        if (!email || !password) {
-
-          loginError.textContent =
-            'Introduce email y contraseña.';
-
-          loginError.style.display =
-            'block';
-
-          return;
-
-        }
+      const email =
+        emailInput
+          .value
+          .trim();
 
 
-        loginButton.disabled = true;
-
-        loginButton.textContent =
-          'Entrando...';
+      const password =
+        passwordInput.value;
 
 
-        const { data, error } =
-          await supabase.auth.signInWithPassword({
+      if (
+        !email ||
+        !password
+      ) {
+
+        loginError.textContent =
+          'Introduce tu email y contraseña.';
+
+        loginError.style.display =
+          'block';
+
+        return;
+
+      }
+
+
+      loginButton.disabled =
+        true;
+
+
+      loginButton.textContent =
+        'Entrando...';
+
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
+          .auth
+          .signInWithPassword({
             email,
             password
           });
 
 
+      if (error) {
+
+        console.error(
+          'Error de login:',
+          error
+        );
+
+
+        loginError.textContent =
+          'No se ha podido iniciar sesión. Comprueba el email y la contraseña.';
+
+        loginError.style.display =
+          'block';
+
+
+        loginButton.disabled =
+          false;
+
+
+        loginButton.textContent =
+          'Entrar';
+
+
+        return;
+
+      }
+
+
+      await loadProfile(
+        data.user
+      );
+
+
+      loginButton.disabled =
+        false;
+
+
+      loginButton.textContent =
+        'Entrar';
+
+    }
+
+
+    /*
+      ==========================================================
+      CERRAR SESIÓN
+      ==========================================================
+    */
+
+    async function logout() {
+
+      await supabaseClient
+        .auth
+        .signOut();
+
+      showLogin();
+
+    }
+
+
+    /*
+      ==========================================================
+      EVENTOS
+      ==========================================================
+    */
+
+    loginButton.addEventListener(
+      'click',
+      login
+    );
+
+
+    logoutButton.addEventListener(
+      'click',
+      logout
+    );
+
+
+    passwordInput.addEventListener(
+      'keydown',
+      function(event) {
+
+        if (
+          event.key === 'Enter'
+        ) {
+
+          login();
+
+        }
+
+      }
+    );
+
+
+    /*
+      ==========================================================
+      COMPROBAR SESIÓN EXISTENTE
+      ==========================================================
+    */
+
+    async function checkSession() {
+
+      try {
+
+        const {
+          data,
+          error
+        } =
+          await supabaseClient
+            .auth
+            .getSession();
+
+
         if (error) {
 
-          loginError.textContent =
-            'Email o contraseña incorrectos.';
+          console.error(
+            'Error comprobando sesión:',
+            error
+          );
 
-          loginError.style.display =
-            'block';
-
-          loginButton.disabled = false;
-
-          loginButton.textContent =
-            'Entrar';
+          showLogin();
 
           return;
 
         }
 
 
-        await loadProfile(data.user);
-
-
-        loginButton.disabled = false;
-
-        loginButton.textContent =
-          'Entrar';
-
-      }
-    );
-
-
-    logoutButton.addEventListener(
-      'click',
-      async () => {
-
-        await supabase.auth.signOut();
-
-        showLogin();
-
-      }
-    );
-
-
-    supabase.auth.onAuthStateChange(
-      async (event, session) => {
-
-        if (session?.user) {
+        if (
+          data &&
+          data.session &&
+          data.session.user
+        ) {
 
           await loadProfile(
-            session.user
+            data.session.user
           );
 
         } else {
@@ -640,7 +1108,60 @@
         }
 
       }
-    );
+      catch (error) {
+
+        console.error(
+          'Error inesperado:',
+          error
+        );
+
+        showLogin();
+
+      }
+
+    }
+
+
+    /*
+      ==========================================================
+      CAMBIOS DE AUTENTICACIÓN
+      ==========================================================
+    */
+
+    supabaseClient
+      .auth
+      .onAuthStateChange(
+        function(
+          event,
+          session
+        ) {
+
+          if (
+            session &&
+            session.user
+          ) {
+
+            loadProfile(
+              session.user
+            );
+
+          } else {
+
+            showLogin();
+
+          }
+
+        }
+      );
+
+
+    /*
+      ==========================================================
+      ARRANCAR
+      ==========================================================
+    */
+
+    checkSession();
 
   </script>
 
