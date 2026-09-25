@@ -20,7 +20,7 @@
     .icon{border:0;background:transparent;color:var(--green);padding:9px;border-radius:12px}.content{padding:7px 15px 25px}
     .hero,.card,.row-card,.detail,.calendar,.modal{background:var(--card);border:1px solid var(--line);border-radius:19px;box-shadow:0 5px 18px #173f350b}
     .hero{padding:18px;margin-bottom:12px;display:flex;gap:12px;justify-content:space-between}.eyebrow{font-size:10px;font-weight:700;letter-spacing:.13em;color:var(--green2)}h1{font-size:26px;margin:4px 0 14px}h2{font-size:20px;margin:0 0 5px}h3{font-size:16px;margin:0 0 10px}.muted{color:var(--muted);font-size:13px}.hero p{margin:6px 0;font-size:13px;color:var(--muted)}
-    .status{padding:5px 8px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;height:max-content}.pending{background:#fff1d1;color:#a66a00}.paid{background:#def2e5;color:#2e7547}.partial{background:#fff3c9;color:#8a6b00}.reserve{background:#efe4fb;color:#6b3a99}
+    .status{padding:5px 8px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;height:max-content}.pending{background:#fff1d1;color:#a66a00}.partial{background:#fff3c9;color:#8a6b00}.paid{background:#def2e5;color:#2e7547}.partial{background:#fff3c9;color:#8a6b00}.reserve{background:#efe4fb;color:#6b3a99}
     .quick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.quick button{border:0;border-radius:16px;color:white;padding:13px;text-align:left}.quick .b1{background:var(--green)}.quick .b2{background:#74519a}.quick b{display:block;font-size:17px}.quick span{font-size:11px;opacity:.8}
     .stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}.stat span{display:block;color:var(--muted);font-size:11px}.stat strong{display:block;font-size:20px;margin-top:4px}
     .card{padding:16px;margin:11px 0}.card-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}.card-head b{flex:1}.card-head .arrow{color:#89938f}
@@ -48,19 +48,70 @@
 <script>
 const { createClient } = supabase;
 const db = createClient(RITMO_CONFIG.url, RITMO_CONFIG.key);
-const projects=[
- {id:1,name:"Orquesta Juniors",color:"#7b4bb7",displacement:true},
- {id:2,name:"Proyecto B",color:"#3d78c4",displacement:false},
- {id:3,name:"Proyecto C",color:"#4f9b61",displacement:true}
-];
-const gigs=[
- {id:1,date:"2026-09-26",time:"19:00",project:projects[0],town:"Calafell",type:"Concierto",price:175,km:82,kmPrice:.30,paid:0,confirmed:true,passes:1},
- {id:2,date:"2026-10-03",time:"21:00",project:projects[1],town:"Tarragona",type:"Baile",price:200,km:0,kmPrice:0,paid:0,confirmed:true,passes:1},
- {id:3,date:"2026-10-18",time:"",project:projects[0],town:"",type:"Otro",price:0,km:0,kmPrice:.30,paid:0,confirmed:false,passes:0}
-];
+let projects=[];
+let gigs=[];
+let payments=[];
+let settings=null;
+let currentGigId=null;
 
 const root=document.getElementById("root");
 let session=null, view="home";
+
+
+async function loadData(){
+  const uid=session?.user?.id;
+  if(!uid) return;
+  const [pr, bg, pa, us] = await Promise.all([
+    db.from("projects").select("*").eq("user_id",uid).order("name"),
+    db.from("bolos").select("*").eq("user_id",uid).neq("status","cancelled").order("event_date"),
+    db.from("payments").select("*").eq("user_id",uid).order("payment_date"),
+    db.from("user_settings").select("*").eq("user_id",uid).maybeSingle()
+  ]);
+  if(pr.error) console.error(pr.error);
+  if(bg.error) console.error(bg.error);
+  if(pa.error) console.error(pa.error);
+  projects=pr.data||[];
+  payments=pa.data||[];
+  settings=us.data||null;
+
+  // Payments are allocated to confirmed bolos from oldest to newest.
+  const confirmed=(bg.data||[])
+    .filter(g=>g.status==="confirmed")
+    .sort((a,b)=>new Date(a.event_date)-new Date(b.event_date));
+  let remaining=payments.reduce((s,p)=>s+Number(p.amount||0),0);
+  const paidMap={};
+  for(const g of confirmed){
+    const gross=Number(g.bolo_price||0);
+    const paid=Math.min(Math.max(remaining,0),gross);
+    paidMap[g.id]=paid;
+    remaining-=paid;
+  }
+
+  gigs=(bg.data||[]).map(g=>({
+    ...g,
+    project:projects.find(p=>p.id===g.project_id)||{},
+    paid:paidMap[g.id]||0
+  }));
+}
+
+function totalGenerated(){
+  return gigs.filter(g=>g.status==="confirmed")
+    .reduce((s,g)=>s+Number(g.bolo_price||0),0);
+}
+function totalPaid(){
+  return payments.reduce((s,p)=>s+Number(p.amount||0),0);
+}
+function totalDue(){
+  return Math.max(0,totalGenerated()-totalPaid());
+}
+function money(n){
+  return Number(n||0).toLocaleString("es-ES",{style:"currency",currency:"EUR"});
+}
+function dateES(d){
+  if(!d) return "Fecha pendiente";
+  return new Date(d+"T12:00:00").toLocaleDateString("es-ES",{day:"2-digit",month:"short"});
+}
+function projectById(id){ return projects.find(p=>p.id===id)||{}; }
 
 function logo(){return `<div class="logo"><span class="staff">♪</span>Ritmo</div>`}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -78,8 +129,10 @@ function pageTitle(t,back=""){return `<div class="title">${back?`<button class="
 function go(v){view=v;render()}
 function card(title,body,onclick=""){return `<section class="card" ${onclick?`onclick="${onclick}" style="cursor:pointer"`:""}><div class="card-head"><b>${title}</b><span class="arrow">${onclick?"›":""}</span></div>${body}</section>`}
 function status(g){
- const total=g.price+g.km*g.kmPrice, rest=Math.max(0,total-g.paid);
- return rest===0?`<span class="status paid">Cobrado</span>`:`<span class="status pending">Pendiente</span>`
+ const total=Number(g.bolo_price||0), paid=Number(g.paid||0);
+ if(total<=paid) return `<span class="status paid">Cobrado</span>`;
+ if(paid>0) return `<span class="status partial">Parcial</span>`;
+ return `<span class="status pending">Pendiente</span>`;
 }
 function gigRow(g){
  return `<button class="row-card" onclick="goGig(${g.id})">
@@ -90,13 +143,20 @@ function gigRow(g){
  </button>`
 }
 function home(){
+ const today=new Date().toISOString().slice(0,10);
+ const g=gigs.filter(x=>x.status==="confirmed"&&x.event_date>=today)
+   .sort((a,b)=>new Date(a.event_date)-new Date(b.event_date))[0];
+ const reservations=gigs.filter(x=>x.status==="reserved"&&x.event_date>=today).slice(0,3);
+ const km=gigs.reduce((s,x)=>s+Number(x.kilometers||0),0);
  return `<section class="hero">
-   <div><div class="eyebrow">PRÓXIMO BOLO</div><h2>Orquesta Juniors</h2><p>◷ 26 septiembre · 19:00</p><p>⌖ Calafell</p></div><span class="status pending">Pendiente</span>
+   <div><div class="eyebrow">PRÓXIMO BOLO</div>
+   ${g?`<h2>${esc(g.project.name||"Sin proyecto")}</h2><p>◷ ${dateES(g.event_date)} · ${esc(g.location||"Ubicación pendiente")}</p>`:`<h2>No hay actuaciones próximas</h2><p>Añade tu próximo bolo para empezar.</p>`}
+   </div>${g?status(g):""}
  </section>
  <div class="quick"><button class="b1" onclick="modalBolo()"><b>＋ Bolo</b><span>Añadir actuación</span></button><button class="b2" onclick="modalCobro()"><b>€ Cobro</b><span>Registrar pago</span></button></div>
- <div class="stats"><div class="stat" onclick="go('economy')"><span>Me deben</span><strong>1.250 €</strong></div><div class="stat" onclick="go('stats')"><span>Este año</span><strong>12 actuaciones</strong></div></div>
- ${card("Reservas próximas",`<div><span class="status reserve">Reserva</span> &nbsp;18 oct · Orquesta Juniors</div>`,`go('reservations')`)}
- ${card("Kilómetros",`<div class="distance">3.420 km</div><div class="small">≈ 0,085 vueltas al mundo 🌍</div>`)}
+ <div class="stats"><div class="stat" onclick="go('economy')"><span>Me deben</span><strong>${money(totalDue())}</strong></div><div class="stat"><span>Actuaciones</span><strong>${gigs.filter(x=>x.status==="confirmed").length}</strong></div></div>
+ ${card("Reservas próximas",reservations.map(g=>gigRow(g)).join("")||`<span class="muted">No hay reservas próximas.</span>`,`go('reservations')`)}
+ ${card("Kilómetros",`<div class="distance">${km.toLocaleString("es-ES")} km</div><div class="small">≈ ${(km/40075).toFixed(3)} vueltas al mundo 🌍</div>`)}
  `;
 }
 function calendar(){
@@ -120,11 +180,13 @@ function more(){
  return `${pageTitle("Más")}<div class="menu">${items.map(x=>`<button onclick="go('${x[0]}')"><span>${x[1]}</span><span>${x[2]}</span><span>›</span></button>`).join("")}</div><div class="quote">♪<br><br>“La música también se organiza.”</div>`;
 }
 function economy(){
+ const generated=totalGenerated(), paid=totalPaid(), due=totalDue();
  return `${pageTitle("Economía")}<div class="tabs"><b>Resumen</b><span>Cobros</span><span>Actuaciones</span><span>Exportar</span></div>
- <div class="stats"><div class="stat"><span>Me deben</span><strong>1.250 €</strong></div><div class="stat"><span>Generado este año</span><strong>8.450 €</strong></div><div class="stat"><span>Cobrado este año</span><strong>6.300 €</strong></div><div class="stat"><span>Pendiente</span><strong>2.150 €</strong></div></div>
- ${card("Desplazamientos generados",`<div class="distance">1.240,50 €</div><div class="small">Kilómetros con compensación económica</div>`)}
- ${card("Exportación económica",`<p class="muted">PDF centrado exclusivamente en importes, cobros y pendiente a fecha de consulta.</p><button class="primary" onclick="alert('En la siguiente fase conectaremos el generador PDF a los datos reales.')">Generar PDF</button>`)}
- ${card("Últimos cobros",`<div class="line"><span>25/09/2026 · Transferencia</span><b>500 €</b></div><div class="line"><span>14/09/2026 · Efectivo</span><b>300 €</b></div><div class="line"><span>02/09/2026 · Transferencia</span><b>750 €</b></div>`)}
+ <div class="stats"><div class="stat"><span>Me deben</span><strong>${money(due)}</strong></div>
+ <div class="stat"><span>Generado</span><strong>${money(generated)}</strong></div>
+ <div class="stat"><span>Cobrado</span><strong>${money(paid)}</strong></div></div>
+ ${card("Últimos cobros",payments.slice(-5).reverse().map(p=>`<div class="line"><span>${dateES(p.payment_date)} · ${esc(p.method||"")}</span><b>${money(p.amount)}</b></div>`).join("")||`<span class="muted">Todavía no hay cobros.</span>`)}
+ ${card("Exportación económica",`<p class="muted">El PDF contendrá únicamente información económica.</p><button class="primary" onclick="alert('El generador PDF se conectará en el siguiente paso.')">Generar PDF</button>`)}
  `;
 }
 function reservations(){
@@ -138,7 +200,12 @@ function checklist(){
  return `${pageTitle("Checklist")}<div class="check">${a.map((x,i)=>`<label><input type="checkbox" ${[0,1,4].includes(i)?"checked":""}>${x}</label>`).join("")}</div><button class="primary" onclick="alert('La lista será editable y guardada en Supabase en la siguiente fase.')">Editar checklist</button>`;
 }
 function mapview(){return `${pageTitle("Mapa")}<div class="map-big">⌖<b>Mapa general de actuaciones</b><span>Todos los bolos del año aparecerán aquí.</span></div>`}
-function projectsview(){return `${pageTitle("Proyectos")}${projects.map(p=>`<div class="project"><span class="dot" style="background:${p.color}"></span><div class="grow"><b>${p.name}</b><small>${p.displacement?"Incluye desplazamiento":"Sin desplazamiento"}</small></div><span>›</span></div>`).join("")}`}
+function projectsview(){
+ return `${pageTitle("Proyectos")}${projects.map(p=>`<div class="project">
+ <span class="dot" style="background:${esc(p.color||"#2e6b59")}"></span>
+ <div class="grow"><b>${esc(p.name)}</b><small>Precio base: ${money(p.default_bolo_price)}</small></div>
+ <span>${p.active?"Activo":"Inactivo"}</span></div>`).join("")||`<p class="muted">No tienes proyectos.</p>`}`;
+}
 function settings(){return `${pageTitle("Ajustes")}<div class="settings">${["Perfil","Proyectos","Precios","Tipos de actuación","Margen de llegada","Cálculo de desplazamiento","Datos de Ritmo / Cuenta","Administración"].map(x=>`<button><span>⚙</span><span>${x}</span><span>›</span></button>`).join("")}</div><button class="secondary" style="margin-top:18px;width:100%" onclick="logout()">Cerrar sesión</button>`}
 function shell(body){return `<div class="app">${header()}<main class="content">${body}</main>${bottom()}</div>`}
 
@@ -150,26 +217,61 @@ function render(){
 function goGig(id){view="gig";root.innerHTML=shell(detail(id))}
 function openRoute(town){if(!town)return;window.open("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(town)," _blank")}
 function modalBolo(){
+ const opts=projects.filter(p=>p.active).map(p=>`<option value="${p.id}">${esc(p.name)} · ${money(p.default_bolo_price)}</option>`).join("");
  document.body.insertAdjacentHTML("beforeend",`<div class="modal-bg" id="modal"><div class="modal"><div class="modal-head"><h2>Añadir bolo</h2><button onclick="closeModal()">✕</button></div><div class="form">
- <label>Proyecto<select><option>Orquesta Juniors</option><option>Proyecto B</option><option>Proyecto C</option></select></label>
- <label>Fecha<input type="date" value="2026-09-26"></label>
- <label>Hora primer pase <input type="time"></label>
- <label>Tipo de actuación<select><option>Concierto</option><option>Baile</option><option>Marcha</option><option>Otro</option></select></label>
- <label>Pases <input type="number" min="0" max="4" placeholder="0"></label>
- <label>Pueblo / ubicación<input placeholder="Pueblo"></label>
- <label>Precio de actuación<input type="number" step="0.01" placeholder="Automático según proyecto"></label>
- <button class="primary" onclick="closeModal();alert('Formulario visual listo. En la siguiente fase guardará directamente en Supabase.')">Guardar bolo</button>
+ <label>Proyecto<select id="fProject">${opts}</select></label>
+ <label>Fecha<input id="fDate" type="date" value="${new Date().toISOString().slice(0,10)}"></label>
+ <label>Hora<input id="fTime" type="time"></label>
+ <label>Ubicación<input id="fLocation" placeholder="Pueblo / sala"></label>
+ <label>Precio bolo<input id="fPrice" type="number" step="0.01" value="${projects[0]?.default_bolo_price||0}"></label>
+ <label>¿Incluye desplazamiento?<select id="fTravel"><option value="true">Sí</option><option value="false">No</option></select></label>
+ <label>Kilómetros<input id="fKm" type="number" step="0.1" value="0"></label>
+ <label>Observaciones<textarea id="fObs"></textarea></label>
+ <button class="primary" onclick="saveBolo()">Guardar bolo</button>
  </div></div></div>`);
+ document.getElementById("fProject")?.addEventListener("change",e=>{
+   const p=projectById(e.target.value);
+   document.getElementById("fPrice").value=p.default_bolo_price||0;
+ });
+}
+async function saveBolo(){
+ const payload={
+   user_id:session.user.id,
+   project_id:document.getElementById("fProject").value,
+   event_date:document.getElementById("fDate").value,
+   status:"confirmed",
+   location:document.getElementById("fLocation").value.trim(),
+   bolo_price:Number(document.getElementById("fPrice").value||0),
+   includes_travel:document.getElementById("fTravel").value==="true",
+   kilometers:Number(document.getElementById("fKm").value||0),
+   returns_home:true,
+   sleep_location:null,
+   program_photo_url:null,
+   obsrvations:document.getElementById("fObs").value.trim()
+ };
+ const {error}=await db.from("bolos").insert(payload);
+ if(error){alert("No se ha podido guardar el bolo: "+error.message);return;}
+ closeModal(); await loadData(); render();
 }
 function modalCobro(){
  document.body.insertAdjacentHTML("beforeend",`<div class="modal-bg" id="modal"><div class="modal"><div class="modal-head"><h2>Registrar cobro</h2><button onclick="closeModal()">✕</button></div><div class="form">
- <label>Importe<input type="number" step="0.01" placeholder="500.00"></label>
- <label>Fecha<input type="date" value="2026-09-25"></label>
- <label>Método<select><option>Transferencia</option><option>Efectivo</option><option>Tarjeta</option></select></label>
- <label>Observaciones<textarea placeholder="Opcional"></textarea></label>
- <div class="preview"><div><span>Pendiente antes</span><b>1.250,00 €</b></div><div><span>Pendiente después</span><b>750,00 €</b></div></div>
- <button class="primary" onclick="closeModal();alert('Formulario visual listo. En la siguiente fase el cobro se repartirá automáticamente por antigüedad.')">Registrar cobro</button>
- </div></div></div>`);
+ <label>Importe<input id="pAmount" type="number" step="0.01"></label>
+ <label>Fecha<input id="pDate" type="date" value="${new Date().toISOString().slice(0,10)}"></label>
+ <label>Método<select id="pMethod"><option>Transferencia</option><option>Efectivo</option><option>Tarjeta</option></select></label>
+ <label>Observaciones<textarea id="pObs"></textarea></label>
+ <div class="preview"><div><span>Me deben ahora</span><b>${money(totalDue())}</b></div></div>
+ <button class="primary" onclick="savePayment()">Registrar cobro</button></div></div></div>`);
+}
+async function savePayment(){
+ const {error}=await db.from("payments").insert({
+   user_id:session.user.id,
+   payment_date:document.getElementById("pDate").value,
+   amount:Number(document.getElementById("pAmount").value||0),
+   method:document.getElementById("pMethod").value,
+   obsrvations:document.getElementById("pObs").value.trim()
+ });
+ if(error){alert("No se ha podido guardar el cobro: "+error.message);return;}
+ closeModal(); await loadData(); render();
 }
 function closeModal(){const m=document.getElementById("modal");if(m)m.remove()}
 async function logout(){await db.auth.signOut();session=null;render()}
@@ -177,8 +279,8 @@ function login(){
  root.innerHTML=`<div class="login"><div class="login-art">${logo()}<p>Tu música, en orden.</p></div><form class="login-card" onsubmit="loginSubmit(event)"><h1>Bienvenido</h1><p class="muted">Accede a tu cuenta de Ritmo.</p><label>Email<input id="email" type="email" required></label><label>Contraseña<input id="password" type="password" required></label><div id="loginError"></div><button class="primary">Iniciar sesión</button></form></div>`;
 }
 async function loginSubmit(e){e.preventDefault();const err=document.getElementById("loginError");err.innerHTML="";const {error}=await db.auth.signInWithPassword({email:email.value,password:password.value});if(error)err.innerHTML=`<div class="error">${esc(error.message)}</div>`}
-db.auth.getSession().then(({data})=>{session=data.session;if(session)render();else login()});
-db.auth.onAuthStateChange((_e,s)=>{session=s;if(s)render();});
+db.auth.getSession().then(async({data})=>{session=data.session;if(session){await loadData();render();}else login()});
+db.auth.onAuthStateChange(async(_e,s)=>{session=s;if(s){await loadData();render();}});
 </script>
 </body>
 </html>
