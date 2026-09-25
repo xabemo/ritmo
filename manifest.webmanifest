@@ -1,0 +1,10 @@
+{
+  "name":"Ritmo",
+  "short_name":"Ritmo",
+  "description":"Control de tus actuaciones, proyectos y cobros.",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#f5f1e8",
+  "theme_color":"#173f35",
+  "orientation":"portrait"
+}
