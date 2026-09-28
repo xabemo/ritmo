@@ -1,356 +1,294 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>RITMO — Gestión de Bolos</title>
-  
-  <!-- Estilos base e interfaz visual -->
-  <style>
-    :root {
-      --bg-color: #0f172a;
-      --card-bg: #1e293b;
-      --accent-color: #38bdf8;
-      --accent-hover: #0284c7;
-      --text-color: #f8fafc;
-      --text-muted: #94a3b8;
-      --border-color: #334155;
-      --danger: #ef4444;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      padding-bottom: 70px; /* Espacio para barra de navegación inferior en móviles */
-    }
-
-    /* Encabezado con Identidad Visual RITMO */
-    header {
-      background-color: var(--card-bg);
-      border-bottom: 1px solid var(--border-color);
-      padding: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .brand-logo {
-      font-size: 1.5rem;
-      font-weight: 800;
-      letter-spacing: 2px;
-      color: var(--text-color);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .brand-logo span {
-      color: var(--accent-color);
-    }
-
-    /* Contenedores de pantallas */
-    main {
-      padding: 1rem;
-      max-width: 600px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 1.25rem;
-      margin-bottom: 1rem;
-    }
-
-    h2 {
-      font-size: 1.2rem;
-      margin-bottom: 1rem;
-      color: var(--text-color);
-    }
-
-    /* Formulario de Auth */
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    label {
-      display: block;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 0.4rem;
-    }
-
-    input, select, button {
-      width: 100%;
-      padding: 0.75rem;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      background-color: #0f172a;
-      color: var(--text-color);
-      font-size: 1rem;
-    }
-
-    button.btn-primary {
-      background-color: var(--accent-color);
-      color: #0f172a;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      margin-top: 0.5rem;
-    }
-
-    button.btn-primary:hover {
-      background-color: var(--accent-hover);
-    }
-
-    /* Lista de Proyectos */
-    .project-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.75rem;
-      background: #0f172a;
-      border-radius: 8px;
-      margin-bottom: 0.5rem;
-      border-left: 4px solid var(--accent-color);
-    }
-
-    .project-info h3 {
-      font-size: 1rem;
-    }
-
-    .project-info p {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    /* Navegación inferior tipo PWA / Móvil */
-    nav.bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background-color: var(--card-bg);
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-around;
-      padding: 0.5rem 0;
-      z-index: 100;
-    }
-
-    .nav-item {
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 0.75rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      background: none;
-      border: none;
-      cursor: pointer;
-    }
-
-    .nav-item.active {
-      color: var(--accent-color);
-    }
-
-    .hidden {
-      display: none !important;
-    }
-  </style>
-
-  <!-- SDK de Supabase JS oficial -->
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#173f35">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Ritmo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <!-- Carga de configuración local -->
-  <script src="config.js"></script>
+  <style>
+    :root{--green:#173f35;--green2:#2e6b59;--cream:#f5f1e8;--card:#fffdf8;--purple:#7b4bb7;--yellow:#e5a82e;--red:#a44343;--muted:#6e7b76;--line:#dfe3dc}
+    *{box-sizing:border-box}body{margin:0;background:var(--cream);color:#18332d;font-family:"DM Sans",system-ui,sans-serif}
+    button,input,select,textarea{font:inherit}button{cursor:pointer}
+    .app{max-width:720px;margin:auto;min-height:100vh;padding-bottom:105px}.top{height:70px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;background:#f5f1e8ee;backdrop-filter:blur(14px)}
+    .logo{font-family:"Playfair Display",serif;font-size:32px;font-weight:600;letter-spacing:-1px;display:flex;align-items:center}.logo .staff{font-family:serif;color:var(--green2);font-size:27px;margin-right:-5px;transform:rotate(-8deg)}
+    .icon{border:0;background:transparent;color:var(--green);padding:9px;border-radius:12px}.content{padding:7px 15px 25px}
+    .hero,.card,.row-card,.detail,.calendar,.modal{background:var(--card);border:1px solid var(--line);border-radius:19px;box-shadow:0 5px 18px #173f350b}
+    .hero{padding:18px;margin-bottom:12px;display:flex;gap:12px;justify-content:space-between}.eyebrow{font-size:10px;font-weight:700;letter-spacing:.13em;color:var(--green2)}h1{font-size:26px;margin:4px 0 14px}h2{font-size:20px;margin:0 0 5px}h3{font-size:16px;margin:0 0 10px}.muted{color:var(--muted);font-size:13px}.hero p{margin:6px 0;font-size:13px;color:var(--muted)}
+    .status{padding:5px 8px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;height:max-content}.pending{background:#fff1d1;color:#a66a00}.partial{background:#fff3c9;color:#8a6b00}.paid{background:#def2e5;color:#2e7547}.partial{background:#fff3c9;color:#8a6b00}.reserve{background:#efe4fb;color:#6b3a99}
+    .quick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.quick button{border:0;border-radius:16px;color:white;padding:13px;text-align:left}.quick .b1{background:var(--green)}.quick .b2{background:#74519a}.quick b{display:block;font-size:17px}.quick span{font-size:11px;opacity:.8}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}.stat span{display:block;color:var(--muted);font-size:11px}.stat strong{display:block;font-size:20px;margin-top:4px}
+    .card{padding:16px;margin:11px 0}.card-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}.card-head b{flex:1}.card-head .arrow{color:#89938f}
+    .distance{font-size:27px;font-weight:700}.small{font-size:11px;color:var(--muted)}
+    .bottom{position:fixed;z-index:20;bottom:0;left:50%;transform:translateX(-50%);width:min(720px,100%);height:76px;background:#fffdf8f2;border-top:1px solid var(--line);backdrop-filter:blur(18px);display:flex;justify-content:space-around;align-items:center;padding-bottom:env(safe-area-inset-bottom)}.bottom button{background:transparent;border:0;color:#7a8580;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px}.bottom .active{color:var(--green);font-weight:700}
+    .fab{position:fixed;z-index:19;bottom:88px;border:0;border-radius:999px;color:white;padding:11px 16px;font-weight:700;box-shadow:0 8px 20px #173f3530}.fab1{left:max(12px,calc(50% - 335px));background:var(--green)}.fab2{right:max(12px,calc(50% - 335px));background:#74519a}
+    .title{display:flex;align-items:center;gap:6px;margin:9px 0 17px}.title h1{margin:0}.back{border:0;background:transparent;color:var(--green);padding:7px}
+    .toolbar{display:flex;gap:8px;margin-bottom:10px}.toolbar>*{flex:1;padding:10px;border:1px solid var(--line);border-radius:11px;background:var(--card);color:var(--green)}
+    .calendar{padding:14px}.month{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.month button{border:0;background:transparent;font-size:24px;color:var(--green)}.week,.days{display:grid;grid-template-columns:repeat(7,1fr);text-align:center}.week span{font-size:10px;color:var(--muted);padding:5px}.days button{height:37px;border:0;background:transparent;border-radius:50%;color:var(--green)}.days .selected{background:var(--green);color:#fff}
+    .row-card{width:100%;display:flex;align-items:center;gap:10px;padding:13px;margin:8px 0;text-align:left;color:var(--green);border-style:solid}.dot{width:10px;height:10px;border-radius:50%;flex:none}.grow{flex:1}.row-card small{display:block;color:var(--muted);font-size:11px;margin-top:3px}.row-card .arrow{color:#89938f}
+    .detail{padding:16px}.detail-top{display:flex;align-items:center;gap:9px}.detail-top .grow{min-width:0}.map{height:205px;margin:14px 0;border-radius:15px;background:linear-gradient(135deg,#e4eadf,#cfdad0);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;color:var(--green)}.economy{background:#f0f4ee;border-radius:14px;padding:12px;margin:12px 0}.line{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:#60706a}.line b{color:var(--green)}.line.total{border-top:1px solid var(--line);font-weight:700}.primary{width:100%;padding:12px;border:0;border-radius:12px;background:var(--green);color:white;font-weight:700}.secondary{padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:var(--card);color:var(--green)}
+    .menu button,.settings button{width:100%;display:flex;align-items:center;gap:11px;padding:15px;border:1px solid var(--line);background:var(--card);border-radius:15px;margin:8px 0;color:var(--green);text-align:left}.menu button span,.settings button span{flex:1}.quote{padding:28px;text-align:center;background:var(--green);color:white;border-radius:18px;margin-top:18px}
+    .tabs{display:flex;gap:18px;overflow:auto;margin-bottom:13px}.tabs span,.tabs b{white-space:nowrap;padding-bottom:7px}.tabs b{border-bottom:2px solid var(--green)}
+    .check label{display:flex;gap:11px;align-items:center;padding:14px;border-bottom:1px solid var(--line);background:var(--card)}.check{border:1px solid var(--line);border-radius:17px;overflow:hidden;margin-bottom:12px}.check input{width:18px;height:18px;accent-color:var(--green)}
+    .map-big{height:58vh;min-height:360px;border-radius:19px;background:linear-gradient(135deg,#dfe7dd,#ccd8ce);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:var(--green)}
+    .project{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:15px;margin:8px 0}.project .grow b,.project .grow small{display:block}.project small{font-size:11px;color:var(--muted);margin-top:3px}
+    .modal-bg{position:fixed;z-index:50;inset:0;background:#0b201a77;display:flex;align-items:flex-end;justify-content:center}.modal{width:min(720px,100%);max-height:93vh;overflow:auto;border-radius:25px 25px 0 0;padding:18px}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.modal-head button{border:0;background:transparent;color:var(--green)}.form label{display:block;font-size:12px;font-weight:700;margin:12px 0}.form input,.form select,.form textarea{width:100%;padding:12px;margin-top:6px;border:1px solid var(--line);border-radius:11px;background:var(--card);color:var(--green)}.form textarea{min-height:80px}.preview{background:#eef3ed;border-radius:12px;padding:11px;margin:12px 0}.preview div{display:flex;justify-content:space-between;padding:4px;font-size:12px}
+    .login{min-height:100vh;background:var(--green);display:grid;grid-template-columns:1fr 1fr}.login-art{display:flex;align-items:center;justify-content:center;flex-direction:column;color:white}.login-art .logo{font-size:68px}.login-art p{opacity:.75}.login-card{background:var(--cream);align-self:center;margin:30px;padding:30px;border-radius:24px;max-width:430px}.login-card label{display:block;font-size:12px;font-weight:700;margin:14px 0}.login-card input{width:100%;padding:13px;margin-top:6px;border:1px solid var(--line);border-radius:11px;background:var(--card)}.error{background:#f7dddd;color:#8b3434;padding:9px;border-radius:9px;font-size:12px;margin:10px 0}.splash{height:100vh;background:var(--green);color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}.splash .logo{font-size:62px}
+    @media(max-width:700px){.login{display:block}.login-art{min-height:36vh}.login-art .logo{font-size:50px}.login-card{margin:-20px 16px 0;position:relative}.fab1{left:12px}.fab2{right:12px}}
+  </style>
 </head>
 <body>
+<div id="root"></div>
+<script src="config.js"></script>
+<script>
+"use strict";
 
-  <!-- Encabezado con Logotipo -->
-  <header>
-    <div class="brand-logo">
-      RITMO <span>🎼</span>
-    </div>
-    <div id="user-status" class="hidden">
-      <button onclick="cerrarSesion()" style="padding:0.4rem 0.8rem; font-size:0.8rem; width:auto;">Salir</button>
-    </div>
-  </header>
+(function () {
+  const root = document.getElementById("root");
 
-  <main>
-    <!-- 1. PANTALLA DE INICIO DE SESIÓN -->
-    <section id="auth-section" class="card">
-      <h2>Iniciar Sesión</h2>
-      <form id="login-form" onsubmit="iniciarSesion(event)">
-        <div class="form-group">
-          <label for="email">Correo electrónico</label>
-          <input type="email" id="email" required placeholder="tu@email.com">
-        </div>
-        <div class="form-group">
-          <label for="password">Contraseña</label>
-          <input type="password" id="password" required placeholder="••••••••">
-        </div>
-        <button type="submit" class="btn-primary">Entrar</button>
-      </form>
-      <p id="auth-error" style="color: var(--danger); font-size: 0.85rem; margin-top: 0.5rem;"></p>
-    </section>
+  let db = null;
+  let session = null;
+  let projects = [];
+  let loadingProjects = false;
+  let fatalError = "";
 
-    <!-- 2. PANTALLA PRINCIPAL / INICIO -->
-    <section id="dashboard-section" class="hidden">
-      <div class="card">
-        <h2>Próximo Bolo Principal</h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem;" id="main-bolo-placeholder">
-          No hay bolos próximos confirmados.
-        </p>
-      </div>
-
-      <!-- Sección de Proyectos Reales desde Supabase -->
-      <div class="card">
-        <h2>Mis Proyectos</h2>
-        <div id="projects-list">
-          <p style="color: var(--text-muted); font-size: 0.85rem;">Cargando proyectos...</p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Navegación Inferior (Móvil) -->
-  <nav class="bottom-nav hidden" id="main-nav">
-    <button class="nav-item active" onclick="mostrarSeccion('dashboard-section')">
-      <span>🏠</span>
-      <span>Inicio</span>
-    </button>
-    <button class="nav-item" onclick="alert('Sección Calendario en desarrollo')">
-      <span>📅</span>
-      <span>Calendario</span>
-    </button>
-    <button class="nav-item" onclick="alert('Sección Economía en desarrollo')">
-      <span>💶</span>
-      <span>Economía</span>
-    </button>
-  </nav>
-
-  <!-- Lógica Principal en JavaScript -->
-  <script>
-    // Se ejecuta al cargar el DOM
-    document.addEventListener('DOMContentLoaded', async () => {
-      // Verificar conexión con config.js y Supabase
-      if (typeof supabase === 'undefined') {
-        alert('Error: No se ha podido cargar el cliente de Supabase. Revisa config.js');
-        return;
-      }
-
-      // Comprobar la sesión del usuario actual
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        mostrarApp(session.user);
-      } else {
-        mostrarLogin();
-      }
-
-      // Escuchar cambios de autenticación
-      supabase.auth.onAuthStateChange((_event, session) => {
-        if (session) {
-          mostrarApp(session.user);
-        } else {
-          mostrarLogin();
-        }
-      });
+  function esc(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function (m) {
+      return {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[m];
     });
+  }
 
-    // Iniciar Sesión con Supabase Auth
-    async function iniciarSesion(event) {
-      event.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const errorEl = document.getElementById('auth-error');
-      
-      errorEl.textContent = '';
+  function logo() {
+    return '<div class="logo"><span class="staff">♪</span>Ritmo</div>';
+  }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password
-      });
+  function showFatal(message) {
+    fatalError = message;
+    root.innerHTML =
+      '<div class="login">' +
+        '<div class="login-art">' + logo() +
+          '<p>Tu música, en orden.</p>' +
+        '</div>' +
+        '<section class="login-card">' +
+          '<h1>No se puede iniciar RITMO</h1>' +
+          '<div class="error">' + esc(message) + '</div>' +
+          '<p class="muted">Revisa que config.js exista en la raíz de GitHub Pages y que contenga la configuración de Supabase.</p>' +
+        '</section>' +
+      '</div>';
+  }
 
-      if (error) {
-        errorEl.textContent = 'Error al iniciar sesión: ' + error.message;
+  function validateConfig() {
+    if (!window.RITMO_CONFIG) {
+      throw new Error("No se ha encontrado RITMO_CONFIG. config.js no está cargando.");
+    }
+    if (!RITMO_CONFIG.url || !RITMO_CONFIG.key) {
+      throw new Error("RITMO_CONFIG existe, pero faltan url o key.");
+    }
+  }
+
+  function loginView(errorMessage) {
+    root.innerHTML =
+      '<div class="login">' +
+        '<div class="login-art">' + logo() +
+          '<p>Tu música, en orden.</p>' +
+        '</div>' +
+        '<form class="login-card" id="loginForm">' +
+          '<h1>Bienvenido</h1>' +
+          '<p class="muted">Accede a tu cuenta de Ritmo.</p>' +
+          '<label>Email<input id="email" type="email" autocomplete="username" required></label>' +
+          '<label>Contraseña<input id="password" type="password" autocomplete="current-password" required></label>' +
+          '<div id="loginError">' +
+            (errorMessage ? '<div class="error">' + esc(errorMessage) + '</div>' : '') +
+          '</div>' +
+          '<button class="primary" type="submit">Iniciar sesión</button>' +
+        '</form>' +
+      '</div>';
+
+    document.getElementById("loginForm").addEventListener("submit", loginSubmit);
+  }
+
+  async function loginSubmit(event) {
+    event.preventDefault();
+
+    const button = event.currentTarget.querySelector("button");
+    const errorBox = document.getElementById("loginError");
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    errorBox.innerHTML = "";
+    button.disabled = true;
+    button.textContent = "Entrando…";
+
+    try {
+      const result = await db.auth.signInWithPassword({ email, password });
+      if (result.error) {
+        errorBox.innerHTML = '<div class="error">' + esc(result.error.message) + '</div>';
       }
+    } catch (error) {
+      errorBox.innerHTML = '<div class="error">' + esc(error.message || "Error de conexión.") + '</div>';
+    } finally {
+      button.disabled = false;
+      button.textContent = "Iniciar sesión";
+    }
+  }
+
+  function loadingView(message) {
+    root.innerHTML =
+      '<div class="splash">' + logo() +
+      '<span>' + esc(message || "Preparando RITMO…") + '</span></div>';
+  }
+
+  async function loadProjects() {
+    if (!session || !session.user || !session.user.id) {
+      projects = [];
+      return;
     }
 
-    // Cerrar Sesión
-    async function cerrarSesion() {
-      await supabase.auth.signOut();
+    loadingProjects = true;
+    renderApp();
+
+    const result = await db
+      .from("projects")
+      .select("id,user_id,name,color,logo_url,default_bolo_price,active,created_at,updated_at")
+      .eq("user_id", session.user.id)
+      .order("name", { ascending: true });
+
+    loadingProjects = false;
+
+    if (result.error) {
+      console.error("RITMO projects error:", result.error);
+      throw new Error("No se han podido leer los proyectos: " + result.error.message);
     }
 
-    // Mostrar vista de aplicación tras login exitoso
-    function mostrarApp(user) {
-      document.getElementById('auth-section').classList.add('hidden');
-      document.getElementById('dashboard-section').classList.remove('hidden');
-      document.getElementById('main-nav').classList.remove('hidden');
-      document.getElementById('user-status').classList.remove('hidden');
+    projects = Array.isArray(result.data) ? result.data : [];
+  }
 
-      // Cargar Proyectos reales filtrados por user_id (Paso 4 y 5)
-      cargarProyectos(user.id);
+  function projectCard(project) {
+    const color = project.color || "#2e6b59";
+    const price = Number(project.default_bolo_price || 0);
+
+    return (
+      '<div class="project">' +
+        '<span class="dot" style="background:' + esc(color) + '"></span>' +
+        '<div class="grow">' +
+          '<b>' + esc(project.name || "Proyecto sin nombre") + '</b>' +
+          '<small>Precio base: ' +
+            price.toLocaleString("es-ES", { style: "currency", currency: "EUR" }) +
+          '</small>' +
+        '</div>' +
+        '<span>' + (project.active ? "Activo" : "Inactivo") + '</span>' +
+      '</div>'
+    );
+  }
+
+  function appView() {
+    return (
+      '<div class="app">' +
+        '<header class="top">' +
+          logo() +
+          '<button class="icon" id="logoutButton" type="button" title="Cerrar sesión">↪</button>' +
+        '</header>' +
+        '<main class="content">' +
+          '<div class="title"><h1>Proyectos</h1></div>' +
+          '<section class="card">' +
+            '<div class="card-head"><b>Proyectos reales de Supabase</b></div>' +
+            '<p class="muted">Sesión iniciada como ' +
+              esc(session?.user?.email || "usuario") +
+            '</p>' +
+          '</section>' +
+          (loadingProjects
+            ? '<div class="splash" style="height:220px;border-radius:19px"><span>Cargando proyectos…</span></div>'
+            : projects.length
+              ? projects.map(projectCard).join("")
+              : '<section class="card"><b>No tienes proyectos</b><p class="muted">La consulta a Supabase ha funcionado, pero no hay proyectos asociados a este usuario.</p></section>'
+          ) +
+        '</main>' +
+      '</div>'
+    );
+  }
+
+  function renderApp() {
+    if (!session) {
+      loginView();
+      return;
     }
+    root.innerHTML = appView();
 
-    // Mostrar vista de Login
-    function mostrarLogin() {
-      document.getElementById('auth-section').classList.remove('hidden');
-      document.getElementById('dashboard-section').classList.add('hidden');
-      document.getElementById('main-nav').classList.add('hidden');
-      document.getElementById('user-status').classList.add('hidden');
-    }
+    const logoutButton = document.getElementById("logoutButton");
+    if (logoutButton) logoutButton.addEventListener("click", logout);
+  }
 
-    // Cargar proyectos de la tabla 'projects' desde Supabase
-    async function cargarProyectos(userId) {
-      const container = document.getElementById('projects-list');
-      
-      try {
-        const { data: projects, error } = await supabase
-          .from('projects')
-          .select('*')
-          .eq('user_id', userId)
-          .eq('active', true);
+  async function logout() {
+    await db.auth.signOut();
+  }
 
-        if (error) throw error;
+  async function start() {
+    try {
+      validateConfig();
 
-        if (!projects || projects.length === 0) {
-          container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No tienes proyectos activos guardados.</p>';
+      const { createClient } = window.supabase;
+      db = createClient(RITMO_CONFIG.url, RITMO_CONFIG.key);
+
+      loadingView("Comprobando sesión…");
+
+      const sessionResult = await db.auth.getSession();
+      if (sessionResult.error) {
+        throw new Error("No se ha podido obtener la sesión: " + sessionResult.error.message);
+      }
+
+      session = sessionResult.data.session;
+
+      if (!session) {
+        loginView();
+      } else {
+        loadingView("Cargando proyectos…");
+        await loadProjects();
+        renderApp();
+      }
+
+      db.auth.onAuthStateChange(function (_event, newSession) {
+        session = newSession;
+
+        if (!session) {
+          projects = [];
+          loginView();
           return;
         }
 
-        // Renderizar lista de proyectos
-        container.innerHTML = projects.map(p => `
-          <div class="project-item" style="border-left-color: ${p.color || 'var(--accent-color)'};">
-            <div class="project-info">
-              <h3>${p.name}</h3>
-              <p>Precio por defecto: ${p.default_bolo_price ? p.default_bolo_price + '€' : 'No definido'}</p>
-            </div>
-          </div>
-        `).join('');
-
-      </div> catch (err) {
-        console.error('Error al cargar proyectos:', err.message);
-        container.innerHTML = `<p style="color: var(--danger); font-size: 0.85rem;">Error al obtener proyectos de Supabase.</p>`;
-      }
+        /*
+         * Supabase recomienda no encadenar operaciones asíncronas directamente
+         * dentro del callback de onAuthStateChange. Lanzamos la recarga fuera
+         * del callback para evitar bloqueos/reentradas.
+         */
+        setTimeout(async function () {
+          try {
+            loadingView("Cargando proyectos…");
+            await loadProjects();
+            renderApp();
+          } catch (error) {
+            showFatal(error.message || "Error leyendo proyectos.");
+          }
+        }, 0);
+      });
+    } catch (error) {
+      console.error("RITMO startup error:", error);
+      showFatal(error.message || "Error inesperado al iniciar RITMO.");
     }
-  </script>
+  }
+
+  start();
+})();
+</script>
 </body>
 </html>
