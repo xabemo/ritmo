@@ -51,6 +51,10 @@
  </style>
 <style id="ritmo-v15">
 .event-dots{position:absolute;left:50%;bottom:2px;transform:translateX(-50%);display:flex;gap:2px;max-width:28px}.event-dots i{display:block;width:5px;height:5px;border-radius:50%}.days button.has-event::after{display:none}.check-progress{display:flex;align-items:center;gap:10px;margin:8px 0 14px}.check-progress progress{flex:1;height:8px;accent-color:var(--green2)}.pass-actions{display:flex;gap:5px;align-items:center}.route-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.year-compare{font-size:11px;margin-top:4px}.positive{color:#2e7547}.negative{color:var(--red)}.check-template-row{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto;gap:8px!important}.check-template-actions{display:flex;gap:5px}.inactive-item{opacity:.55}.stats-year{max-width:180px}
+</style>
+<style id="ritmo-v16">
+.km-story{display:block;margin-top:8px;font-size:11px;line-height:1.45;color:var(--muted)}
+.km-story b{color:var(--green);font-weight:700}.project-stat-list{display:grid;gap:8px}.project-stat-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}.project-stat-row:last-child{border-bottom:0}.project-stat-name{display:flex;align-items:center;gap:8px;min-width:0}.project-stat-name span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.project-stat-data{text-align:right;white-space:nowrap}.project-stat-data b,.project-stat-data small{display:block}.project-stat-data small{color:var(--muted);font-size:11px;margin-top:2px}.insight-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.insight{padding:12px;border-radius:13px;background:#f0f4ee;min-width:0}.insight span{display:block;color:var(--muted);font-size:10px}.insight b{display:block;margin-top:4px;font-size:15px;overflow-wrap:anywhere}.status-summary{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.status-summary span{padding:6px 9px;border-radius:999px;font-size:10px;font-weight:700;background:#eef3ed}.stats-card-title{margin-bottom:14px!important}.stats-card-title .arrow{display:none}@media(max-width:420px){.project-stat-row{grid-template-columns:1fr}.project-stat-data{text-align:left}.insight-grid{grid-template-columns:1fr 1fr}}
 </style></head>
 <body>
 <div id="root"></div>
@@ -128,17 +132,28 @@ function travelInfo(g){
  return {km,speed,margin,price,cost:km*Number(price||0),minutes,withMargin:minutes+margin};
 }
 
+function kmEquivalence(km){
+ const n=Number(km||0),earth=40075;
+ if(n<=0)return 'Empieza a registrar kilómetros para ver tus equivalencias.';
+ const laps=n/earth;
+ if(n<621)return `Te faltan ${Math.max(0,Math.round(621-n)).toLocaleString('es-ES')} km para un Barcelona–Madrid aprox.`;
+ if(n<5860)return `Equivale a ${(n/621).toFixed(1).replace('.',',')} viajes Barcelona–Madrid aprox.`;
+ if(n<earth)return `Equivale al ${(laps*100).toFixed(1).replace('.',',')}% de una vuelta al mundo.`;
+ return `Equivale a ${laps.toFixed(2).replace('.',',')} vueltas al mundo.`;
+}
+function kmThisYear(){const y=String(new Date().getFullYear());return gigs.filter(g=>g.status!=='cancelado'&&String(g.event_date).slice(0,4)===y).reduce((n,g)=>n+Number(g.kilometers||0),0)}
+function statsInsights(rows,year){const valid=rows.filter(g=>g.status!=='cancelado'),avg=valid.length?valid.reduce((n,g)=>n+Number(g.bolo_price||0),0)/valid.length:0;const months=Array(12).fill(0);valid.forEach(g=>{const m=Number(String(g.event_date).slice(5,7))-1;if(m>=0&&m<12)months[m]++});const max=Math.max(...months);const idx=max?months.indexOf(max):-1;const month=idx>=0?new Date(Number(year),idx,1).toLocaleDateString('es-ES',{month:'long'}):'—';return {avg,busiest:month,busiestCount:max}}
 function nextGig(){const today=localDate();return gigs.filter(g=>g.event_date>=today&&g.status!=='cancelado').sort((a,b)=>a.event_date.localeCompare(b.event_date))[0]}
 function home(){
  const g=nextGig(),p=g?projectById(g.project_id):null;
- const km=gigs.filter(x=>x.status!=='cancelado').reduce((n,x)=>n+Number(x.kilometers||0),0);
+ const km=gigs.filter(x=>x.status!=='cancelado').reduce((n,x)=>n+Number(x.kilometers||0),0),kmYear=kmThisYear();
  const generated=generatedTotal(),paid=totalPaid(),owed=Math.max(0,generated-paid),comp=currentYearCompletion();
  const owedRows=projects.map(p=>({p,owed:owedForProject(p.id)})).filter(x=>x.owed>0).sort((a,b)=>b.owed-a.owed);
  const mini=owedRows.length?owedRows.slice(0,5).map(x=>`<div class="owed-mini-row"><span class="owed-mini-name"><span class="dot" style="display:inline-block;background:${esc(x.p.color||'#8B5CF6')}"></span>${esc(x.p.name)}</span><b>${money(x.owed)}</b></div>`).join(''):`<span class="muted" style="font-size:12px">Sin importes pendientes</span>`;
  return `${g?`<section class="hero hero-link" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openBoloDetail('${g.id}')}" onclick="openBoloDetail('${g.id}')" style="cursor:pointer"><div><div class="eyebrow">PRÓXIMO BOLO · VER DETALLE →</div><h2>${esc(p.name)}</h2><p>◷ ${esc(g.event_date)}</p><p>⌖ ${esc(g.location||'Ubicación pendiente')}</p></div><span class="status ${boloStatusClass(g.status)}">${esc(boloStatusLabel(g.status))}</span></section>`:`<section class="hero"><div><div class="eyebrow">RITMO</div><h2>Empieza a organizar tus bolos</h2></div></section>`}
  <div class="quick"><button class="b1" onclick="go('bolos')"><b>Bolos <span aria-hidden="true">↗</span></b><span>Tu agenda de actuaciones</span></button><button class="b2" onclick="go('economy')"><b>Mis cobros <span aria-hidden="true">↗</span></b><span>Lo cobrado y lo pendiente</span></button></div>
  <section class="hero balance"><div><div class="eyebrow">SALDO PENDIENTE</div><div style="font-size:34px;font-weight:800;margin-top:4px">${money(owed)}</div><div class="muted" style="margin-top:4px">Total que te falta por cobrar</div></div><div style="border-left:1px solid var(--line);padding-left:16px;min-width:0"><div class="eyebrow">POR PROYECTO</div>${mini}</div></section>
- <div class="stats"><div class="stat" onclick="go('economy')"><span>Generado · todos los proyectos</span><strong>${money(generated)}</strong></div><div class="stat" onclick="go('economy')"><span>Cobrado · todos los proyectos</span><strong>${money(paid)}</strong></div><div class="stat"><span>Kilómetros · todos los proyectos</span><strong>${km.toLocaleString('es-ES')}</strong></div><div class="stat"><span>Fechas ${new Date().getFullYear()}</span><strong>${comp.pct}%</strong><progress class="completion" value="${comp.done}" max="${comp.total||1}" aria-label="Fechas completadas del año"></progress><small class="completion-note">${comp.total?`${comp.done} de ${comp.total} completadas`:'Sin fechas este año'}</small><small class="muted completion-note">Confirmadas anteriores a hoy. Sin canceladas.</small></div></div>
+ <div class="stats"><div class="stat" onclick="go('economy')"><span>Generado · todos los proyectos</span><strong>${money(generated)}</strong></div><div class="stat" onclick="go('economy')"><span>Cobrado · todos los proyectos</span><strong>${money(paid)}</strong></div><div class="stat"><span>Kilómetros · todos los proyectos</span><strong>${km.toLocaleString('es-ES')} km</strong><small class="completion-note">Este año: <b>${kmYear.toLocaleString('es-ES')} km</b></small><small class="km-story">🌍 ${esc(kmEquivalence(km))}</small></div><div class="stat"><span>Fechas ${new Date().getFullYear()}</span><strong>${comp.pct}%</strong><progress class="completion" value="${comp.done}" max="${comp.total||1}" aria-label="Fechas completadas del año"></progress><small class="completion-note">${comp.total?`${comp.done} de ${comp.total} completadas`:'Sin fechas este año'}</small><small class="muted completion-note">Confirmadas anteriores a hoy. Sin canceladas.</small></div></div>
  ${g?card('Próximas actuaciones',gigs.filter(x=>x.event_date>=localDate()&&x.status!=='cancelado').slice(0,6).map(gigRow).join('')):''}
  ${projects.length?`<div style="margin-top:8px;text-align:right"><button class="mini" onclick="go('projects')">Gestionar proyectos →</button></div>`:''}`
 }
@@ -184,18 +199,22 @@ function stats(){
  const year=Number(window.statsYear||new Date().getFullYear());
  const selected=window.statsProjectFilter||'';
  const s=projectStats(selected,year),prev=projectStats(selected,year-1);
+ const scopedAll=gigs.filter(g=>(!selected||g.project_id===selected)&&String(g.event_date).slice(0,4)===String(year));
+ const insights=statsInsights(scopedAll,year);
+ const confirmed=scopedAll.filter(g=>g.status==='confirmado').length,reserves=scopedAll.filter(g=>g.status==='reserva').length,cancelled=scopedAll.filter(g=>g.status==='cancelado').length;
  const monthly=Array.from({length:12},(_,m)=>s.rows.filter(g=>new Date(g.event_date+'T12:00:00').getMonth()===m).reduce((n,g)=>n+Number(g.bolo_price||0),0));
  const maxMonth=Math.max(...monthly,1);
  const bars=monthly.map((v,i)=>`<div style="display:flex;align-items:flex-end;gap:5px;height:120px"><div title="${money(v)}" style="width:100%;height:${Math.max(5,Math.round(v/maxMonth*100))}%;background:var(--green2);border-radius:6px 6px 2px 2px"></div><small style="position:absolute;transform:translateY(64px);font-size:9px">${['E','F','M','A','M','J','J','A','S','O','N','D'][i]}</small></div>`).join('');
  const options=projects.map(p=>`<option value="${p.id}" ${p.id===selected?'selected':''}>${esc(p.name)}</option>`).join('');
  const years=[...new Set(gigs.map(g=>Number(String(g.event_date).slice(0,4))).filter(Boolean).concat([new Date().getFullYear()]))].sort((a,b)=>b-a);
  const change=pctChange(s.generated,prev.generated);
+ const projectRows=projects.map(p=>{const x=projectStats(p.id,year);return `<div class="project-stat-row"><div class="project-stat-name"><span class="dot" style="background:${esc(p.color||'#7b4bb7')}"></span><span>${esc(p.name)}</span></div><div class="project-stat-data"><b>${money(x.generated)}</b><small>${x.rows.length} ${x.rows.length===1?'bolo':'bolos'} · pendiente ${money(x.owed)}</small></div></div>`}).join('');
  return `${pageTitle('Estadísticas')}<div class="toolbar"><select onchange="setStatsProject(this.value)"><option value="">Todos los proyectos</option>${options}</select><select class="stats-year" onchange="setStatsYear(this.value)">${years.map(v=>`<option value="${v}" ${v===year?'selected':''}>${v}</option>`).join('')}</select></div>
  <div class="stats"><div class="stat"><span>Actuaciones · ${year}</span><strong>${s.rows.length}</strong><small class="muted">${prev.rows.length} en ${year-1}</small></div><div class="stat"><span>Kilómetros · ${year}</span><strong>${s.km.toLocaleString('es-ES')}</strong><small class="muted">${prev.km.toLocaleString('es-ES')} en ${year-1}</small></div><div class="stat"><span>Generado · ${year}</span><strong>${money(s.generated)}</strong><small class="year-compare ${change>=0?'positive':'negative'}">${change>=0?'+':''}${change}% vs ${year-1}</small></div><div class="stat"><span>Me deben · ${year}</span><strong>${money(s.owed)}</strong><small class="muted">Cobrado ${money(s.paid)}</small></div></div>
+ ${card('Resumen del año',`<div class="insight-grid"><div class="insight"><span>Media por bolo</span><b>${money(insights.avg)}</b></div><div class="insight"><span>Mes con más bolos</span><b>${esc(insights.busiest)}${insights.busiestCount?` · ${insights.busiestCount}`:''}</b></div></div><div class="status-summary"><span>✓ ${confirmed} confirmados</span><span>◷ ${reserves} reservas</span><span>× ${cancelled} cancelados</span></div>`)}
  ${card('Ingresos por mes',`<div style="display:grid;grid-template-columns:repeat(12,1fr);gap:5px;align-items:end;position:relative">${bars}</div>`)}
- ${selected?card('Proyecto seleccionado',`<div class="line"><span>Generado</span><b>${money(s.generated)}</b></div><div class="line"><span>Cobrado</span><b>${money(s.paid)}</b></div><div class="line total"><span>Me deben</span><b>${money(s.owed)}</b></div>`):card('Por proyecto',projects.map(p=>{const x=projectStats(p.id,year);return `<div class="line"><span>${esc(p.name)}</span><span><b>${money(x.generated)}</b> · ${x.rows.length} bolos</span></div>`}).join('')||'<p class="muted">No hay proyectos.</p>')}`;
+ ${selected?card('Proyecto seleccionado',`<div class="line"><span>Generado</span><b>${money(s.generated)}</b></div><div class="line"><span>Cobrado</span><b>${money(s.paid)}</b></div><div class="line total"><span>Me deben</span><b>${money(s.owed)}</b></div>`):`<section class="card"><div class="card-head stats-card-title"><b>Por proyecto</b></div><div class="project-stat-list">${projectRows||'<p class="muted">No hay proyectos.</p>'}</div></section>`}`;
 }
-
 function setStatsProject(id){window.statsProjectFilter=id;render()}
 function setStatsYear(y){window.statsYear=Number(y);render()}
 
