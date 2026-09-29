@@ -1,0 +1,9 @@
+RITMO v1.5
+
+Sustituye index.html en tu publicación. Conserva tu config.js, sw.js y manifest.webmanifest actuales. No requiere SQL ni modifica el esquema de datos.
+
+Cambios: navegación Bolos reparada; accesos Inicio a Bolos y Mis cobros; sin rueda de ajustes en cabecera; checklist solo en Más y en las fichas; porcentaje anual corregido; filtros de bolos con recuentos y selector de proyecto; detalle y confirmación de reservas reparados; mejoras de distribución móvil y botones de formulario. En v1.5 se estabilizan las filas de cobros y los importes pendientes por proyecto, y el estado del próximo bolo recupera su color correcto.
+
+Fechas completadas: bolos confirmados anteriores al día actual / todas las fechas del año actual no canceladas (incluidas reservas). Hoy aún no cuenta como completado. Los años futuros no afectan al porcentaje.
+
+Se conserva la paleta y tipografía. Las pruebas utilizan datos ficticios, sin acceder a tu cuenta Supabase.
