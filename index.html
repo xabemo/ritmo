@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#173f35">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#FEFBF1">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest?v=1.22.4">
@@ -196,6 +196,9 @@
 </style><style id="ritmo-v1227-logo-match">
 /* Fondo extraído del propio archivo de marca: RGB 254,251,241. */
 :root{--brand-paper:#fefbf1}.top{background:var(--brand-paper)!important}.top .brand.brand-image{background:var(--brand-paper)!important}.top .brand.brand-image img{mix-blend-mode:normal!important}.login{background:var(--brand-paper)!important}.login-art{background:var(--brand-paper)!important;color:var(--green)!important}.login-art .brand.brand-image{width:min(420px,86vw)!important;height:auto!important;background:var(--brand-paper)!important;border-radius:0!important}.login-art .brand.brand-image img{height:auto!important;mix-blend-mode:normal!important}.login-card{background:#fffdf8!important;border:1px solid var(--line)}
+</style><style id="ritmo-v1228-safe-area">
+html,body{background:#fefbf1!important;overscroll-behavior:none}
+@supports (padding: max(0px)) {body{padding-top:env(safe-area-inset-top);margin-top:calc(-1 * env(safe-area-inset-top))}}
 </style></head>
 <body>
 <div id="root"></div>
@@ -475,13 +478,14 @@ function closeModal(){document.getElementById('modal')?.remove()}
 async function logout(){await db.auth.signOut();session=null;projects=[];gigs=[];login()}
 function login(){root.innerHTML=`<div class="login"><div class="login-art">${logo()}<p>Tu música, en orden.</p></div><form class="login-card" onsubmit="loginSubmit(event)"><h1>Bienvenido</h1><p class="muted">Accede a tu cuenta de Ritmo.</p><label>Email<input id="email" type="email" required></label><label>Contraseña<input id="password" type="password" required></label><div id="loginError"></div><button class="primary">Iniciar sesión</button></form></div>`}
 async function loginSubmit(e){e.preventDefault();const err=document.getElementById('loginError');err.innerHTML='';const {error}=await db.auth.signInWithPassword({email:document.getElementById('email').value,password:document.getElementById('password').value});if(error)err.innerHTML=`<div class="error">${esc(error.message)}</div>`}
-async function start(){const {data}=await db.auth.getSession();session=data.session;if(!session){login();return}try{await loadProjects();await loadGigs();await loadPayments();await loadExpenses();await loadUserSettings();await loadExtras();await loadHomeNextPasses();render()}catch(e){root.innerHTML=`<div class="splash"><div class="logo">Ritmo</div><div class="error">No se han podido cargar los proyectos.<br>${esc(e.message)}</div></div>`}}
+async function start(){const {data}=await db.auth.getSession();session=data.session;if(!session){login();return}view="home";try{await loadProjects();await loadGigs();await loadPayments();await loadExpenses();await loadUserSettings();await loadExtras();await loadHomeNextPasses();render()}catch(e){root.innerHTML=`<div class="splash"><div class="logo">Ritmo</div><div class="error">No se han podido cargar los proyectos.<br>${esc(e.message)}</div></div>`}}
 function syncModalViewport(){const vp=window.visualViewport;document.documentElement.style.setProperty('--modal-height',(vp?vp.height:window.innerHeight)+'px');document.documentElement.style.setProperty('--modal-top',(vp?vp.offsetTop:0)+'px')}
 window.visualViewport?.addEventListener('resize',syncModalViewport);window.visualViewport?.addEventListener('scroll',syncModalViewport);syncModalViewport();
 db.auth.onAuthStateChange((_e,s)=>{session=s;if(s)start();});start();
 </script>
 </body>
 </html>
+
 
 
 
