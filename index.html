@@ -6,9 +6,9 @@
   <meta name="theme-color" content="#173f35">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="manifest.webmanifest?v=1.21.1">
-  <link rel="apple-touch-icon" sizes="180x180" href="icons/ritmo-v1211-180.png?v=1.21.1">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/ritmo-v1211-192.png?v=1.21.1">
+  <link rel="manifest" href="manifest.webmanifest?v=1.22.4">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/ritmo-r-v1224-180.png?v=1.22.4">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/ritmo-r-v1224-192.png?v=1.22.4">
   <title>Ritmo</title>
   <!-- RITMO v1.21.1 FIX -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -193,6 +193,9 @@
 </style><style id="ritmo-v1223-header-ivory">
 /* El fondo de cabecera comparte el marfil de la marca editorial. */
 .top{background:var(--cream)!important;color:var(--green)!important;border-bottom:1px solid var(--line);box-shadow:0 3px 15px #173f3512!important}.top-menu,.top-avatar,.top-bell{color:var(--green)!important}.top-menu:hover,.top-bell:hover{background:#173f350a!important}.top-avatar{background:var(--green)!important;color:var(--cream)!important}.top-bell-dot{box-shadow:0 0 0 2px var(--cream)!important}.top .brand.brand-image{background:transparent!important;border-radius:0!important}.top .brand.brand-image img{mix-blend-mode:multiply}
+</style><style id="ritmo-v1225-logo-transparent">
+/* La marca no tiene recuadro: su fondo es transparente y hereda el marfil exacto de la cabecera. */
+.top .brand.brand-image img{mix-blend-mode:normal!important;background:transparent!important}
 </style></head>
 <body>
 <div id="root"></div>
@@ -479,6 +482,8 @@ db.auth.onAuthStateChange((_e,s)=>{session=s;if(s)start();});start();
 </script>
 </body>
 </html>
+
+
 
 
 
