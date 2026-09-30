@@ -170,7 +170,13 @@
  .top{padding-top:max(env(safe-area-inset-top),0px)!important}
 }
 </style>
-</head>
+<style id="ritmo-v1212-modal-fix">
+/* Los formularios y visores quedan siempre por encima de la cabecera fija. */
+.modal-bg{z-index:220!important;padding-top:env(safe-area-inset-top)}
+.drawer-bg{z-index:210!important}
+.modal{margin-top:12px}
+@media(max-width:700px){.modal-bg{align-items:flex-end}.modal{max-height:calc(100dvh - env(safe-area-inset-top) - 12px)}}
+</style></head>
 <body>
 <div id="root"></div>
 <script src="config.js"></script>
@@ -468,5 +474,6 @@ db.auth.onAuthStateChange((_e,s)=>{session=s;if(s)start();});start();
 </script>
 </body>
 </html>
+
 
 
