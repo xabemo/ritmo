@@ -176,6 +176,11 @@
 .drawer-bg{z-index:210!important}
 .modal{margin-top:12px}
 @media(max-width:700px){.modal-bg{align-items:flex-end}.modal{max-height:calc(100dvh - env(safe-area-inset-top) - 12px)}}
+</style><style id="ritmo-v1213-brand">
+/* Marca RITMO: wordmark editorial + pentagrama breve. */
+.top .brand-word{font-family:"Playfair Display",Georgia,serif!important;font-weight:600!important;letter-spacing:.045em!important;text-shadow:none!important}
+.top .brand-staff{width:72%!important;margin:3px auto 0!important}.top .brand-lines{border-color:#e5a82e!important}.top .brand-lines:before{border-color:#e5a82e!important}.top .brand-lines:after{left:55%!important;right:5%!important;border-color:#e5a82e!important}.top .brand-note{color:#e5a82e;text-shadow:none!important;font-size:22px!important}.top .brand-tag{font-family:"DM Sans",sans-serif!important;font-weight:700;letter-spacing:.28em!important}
+.drawer-head .brand-word{font-family:"Playfair Display",Georgia,serif!important}.drawer-head .brand-note{color:var(--yellow)}
 </style></head>
 <body>
 <div id="root"></div>
@@ -474,6 +479,7 @@ db.auth.onAuthStateChange((_e,s)=>{session=s;if(s)start();});start();
 </script>
 </body>
 </html>
+
 
 
 
