@@ -181,6 +181,15 @@
 .top .brand-word{font-family:"Playfair Display",Georgia,serif!important;font-weight:600!important;letter-spacing:.045em!important;text-shadow:none!important}
 .top .brand-staff{width:72%!important;margin:3px auto 0!important}.top .brand-lines{border-color:#e5a82e!important}.top .brand-lines:before{border-color:#e5a82e!important}.top .brand-lines:after{left:55%!important;right:5%!important;border-color:#e5a82e!important}.top .brand-note{color:#e5a82e;text-shadow:none!important;font-size:22px!important}.top .brand-tag{font-family:"DM Sans",sans-serif!important;font-weight:700;letter-spacing:.28em!important}
 .drawer-head .brand-word{font-family:"Playfair Display",Georgia,serif!important}.drawer-head .brand-note{color:var(--yellow)}
+</style><style id="ritmo-v1221-layout-brand">
+/* Estadísticas: el importe y su detalle no comparten línea en pantallas estrechas. */
+.project-stat-row{grid-template-columns:minmax(0,1fr) minmax(112px,max-content)!important;align-items:center!important}.project-stat-data{min-width:112px!important;white-space:normal!important}.project-stat-data b{white-space:nowrap}.project-stat-data small{line-height:1.35!important;overflow-wrap:anywhere}
+@media(max-width:390px){.project-stat-row{grid-template-columns:1fr!important}.project-stat-data{min-width:0!important;text-align:left!important}}
+/* Marca aplicada: palabra editorial, pentagrama breve y nota dorada claramente separada. */
+.top .brand{max-width:205px!important;min-width:165px!important}.top .brand-word{font-family:"Playfair Display",Georgia,serif!important;font-size:37px!important;font-weight:600!important;letter-spacing:.06em!important;text-shadow:none!important}.top .brand-staff{width:76%!important;height:13px!important;margin:2px auto 0!important}.top .brand-lines{border-color:var(--yellow)!important}.top .brand-lines:before{border-color:var(--yellow)!important}.top .brand-lines:after{left:55%!important;right:3%!important;border-color:var(--yellow)!important}.top .brand-note{color:var(--yellow)!important;font-size:25px!important;transform:translateY(-7px)!important}.top .brand-tag{font-family:"DM Sans",sans-serif!important;font-size:6.2px!important;font-weight:700!important;letter-spacing:.3em!important;margin-top:5px!important}
+@media(max-width:430px){.top .brand{max-width:175px!important;min-width:135px!important}.top .brand-word{font-size:32px!important}.top .brand-staff{width:72%!important}.top .brand-note{font-size:22px!important}}
+</style><style id="ritmo-v1222-logo-image">
+.top .brand.brand-image{height:72px!important;width:190px!important;min-width:0!important;max-width:190px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden;border-radius:12px;background:#fffdf8!important}.brand-image img{display:block;width:100%;height:100%;object-fit:contain}.drawer-head .brand.brand-image{width:170px!important;height:74px!important;background:#fffdf8!important}.login-art .brand-image,.splash .brand-image{width:min(400px,86vw)!important;height:auto!important;border-radius:16px}.login-art .brand-image img,.splash .brand-image img{height:auto!important}@media(max-width:430px){.top .brand.brand-image{width:160px!important;height:64px!important}.drawer-head .brand.brand-image{width:150px!important;height:65px!important}}
 </style></head>
 <body>
 <div id="root"></div>
@@ -191,7 +200,7 @@ const db = createClient(RITMO_CONFIG.url, RITMO_CONFIG.key);
 const root=document.getElementById("root");
 let session=null, view="home", projects=[], gigs=[], payments=[], expenses=[], passTypes=[], checklistItems=[], boloPasses=[], boloChecklist=[], homeNextPasses=[], kmPrices=[], currentMonth=new Date(), selectedDay=new Date().toISOString().slice(0,10);
 
-function logo(){return `<div class="brand" aria-label="RITMO · Tu agenda musical"><span class="brand-word">RITMO</span><span class="brand-staff"><i class="brand-lines"></i><b class="brand-note">♪</b></span><span class="brand-tag">TU AGENDA MUSICAL</span></div>`}
+function logo(){return `<div class="brand brand-image" aria-label="RITMO · Tu agenda musical"><img src="assets/ritmo-logo-editorial.png" alt="RITMO · Tu agenda musical"></div>`}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;",'\'':"&#039;"}[m]))}
 function money(v){return `${Number(v||0).toFixed(2).replace('.',',')} €`}
 function userInitials(){const n=window.userSettings?.display_name?.trim()||session?.user?.email?.split('@')[0]||'R';return n.split(/\s+/).slice(0,2).map(x=>x[0]?.toUpperCase()||'').join('')}
@@ -467,6 +476,8 @@ db.auth.onAuthStateChange((_e,s)=>{session=s;if(s)start();});start();
 </script>
 </body>
 </html>
+
+
 
 
 
