@@ -6,11 +6,11 @@
   <meta name="theme-color" content="#173f35">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="icons/ritmo-192.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/ritmo-192.png">
+  <link rel="manifest" href="manifest.webmanifest?v=1.21.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/ritmo-v1211-180.png?v=1.21.1">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/ritmo-v1211-192.png?v=1.21.1">
   <title>Ritmo</title>
-  <!-- RITMO v1.20.3 PLUS -->
+  <!-- RITMO v1.21.1 FIX -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -146,6 +146,29 @@
 .top .brand{max-width:185px;min-width:150px}.top .brand-staff{width:66%;height:10px;margin:2px auto 0}.top .brand-lines{height:6px}.top .brand-lines:after{left:58%;right:2px;height:7px}.top .brand-note{font-size:21px;transform:translateY(-5px)}.top .brand-tag{margin-top:5px}.brand-milestones{display:none!important}
 .calendar-switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#e8ece6;border:1px solid var(--line);padding:4px;border-radius:14px;margin:0 0 12px}.calendar-switch button{border:0;background:transparent;color:var(--green);padding:10px;border-radius:10px;font-weight:700}.calendar-switch button.active{background:var(--card);box-shadow:0 2px 8px #173f3514}.agenda-group{margin:16px 0}.agenda-date{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--green2);margin:0 2px 7px}.agenda-card{display:flex;gap:11px;align-items:center;padding:13px;background:var(--card);border:1px solid var(--line);border-radius:16px;margin:7px 0}.agenda-card .agenda-copy{flex:1;min-width:0}.agenda-card b,.agenda-card small{display:block}.agenda-card small{color:var(--muted);font-size:11px;margin-top:3px}.agenda-conflict{background:#fff3d8;border-color:#e8c979}.agenda-conflict.strong{background:#f9e2e2;border-color:#dfb3b3}.conflict-pill{font-size:9px;font-weight:800;padding:4px 7px;border-radius:999px;background:#fff0c2;color:#7a5b16;white-space:nowrap}.conflict-pill.strong{background:#f4caca;color:#813d3d}.calendar-conflict-note{font-size:10px;color:var(--red);font-weight:700;margin-top:3px}
 @media(max-width:430px){.top .brand{max-width:155px;min-width:120px}.top .brand-staff{width:62%}.top .brand-word{font-size:30px}.top .brand-tag{font-size:5.3px;letter-spacing:.22em}}
+</style>
+
+<style id="ritmo-v1211-fix">
+/* v1.21.1 FIX · cabecera fija + safe area */
+:root{--ritmo-topbar-height:100px}
+.app{padding-top:calc(var(--ritmo-topbar-height) + env(safe-area-inset-top));}
+.top{
+ position:fixed!important;
+ top:0!important;
+ left:50%!important;
+ transform:translateX(-50%);
+ width:min(720px,100%)!important;
+ height:calc(var(--ritmo-topbar-height) + env(safe-area-inset-top))!important;
+ padding-top:env(safe-area-inset-top)!important;
+ z-index:100!important;
+ background:var(--green)!important;
+ box-shadow:0 4px 18px #173f3526;
+}
+@media(max-width:430px){:root{--ritmo-topbar-height:92px}}
+@media(display-mode:standalone){
+ body{min-height:100dvh}
+ .top{padding-top:max(env(safe-area-inset-top),0px)!important}
+}
 </style>
 </head>
 <body>
