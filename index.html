@@ -237,7 +237,7 @@ const db = createClient(RITMO_CONFIG.url, RITMO_CONFIG.key);
 const root=document.getElementById("root");
 let session=null, view="home", projects=[], gigs=[], payments=[], expenses=[], passTypes=[], checklistItems=[], boloPasses=[], boloChecklist=[], homeNextPasses=[], kmPrices=[], currentMonth=new Date(), selectedDay=new Date().toISOString().slice(0,10);
 
-function logo(){return `<div class="brand brand-image" aria-label="RITMO · Tu agenda musical"><img src="assets/ritmo-logo-editorial.png" alt="RITMO · Tu agenda musical"></div>`}
+function logo(){return `<div class="brand brand-image" aria-label="RITMO · Tu agenda musical"><img src="assets/ritmo-logo-editorial-sharp.png" alt="RITMO · Tu agenda musical"></div>`}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;",'\'':"&#039;"}[m]))}
 function money(v){return `${Number(v||0).toFixed(2).replace('.',',')} €`}
 function userInitials(){const n=window.userSettings?.display_name?.trim()||session?.user?.email?.split('@')[0]||'R';return n.split(/\s+/).slice(0,2).map(x=>x[0]?.toUpperCase()||'').join('')}
