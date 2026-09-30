@@ -196,6 +196,9 @@
 </style><style id="ritmo-v1225-logo-transparent">
 /* La marca no tiene recuadro: su fondo es transparente y hereda el marfil exacto de la cabecera. */
 .top .brand.brand-image img{mix-blend-mode:normal!important;background:transparent!important}
+</style><style id="ritmo-v1226-native-logo">
+/* Marca nativa SVG: sin PNG ni fondo, por tanto se integra exactamente en la cabecera. */
+.brand-svg{width:190px!important;height:66px!important;display:block!important}.brand-svg svg{display:block;width:100%;height:100%;overflow:visible}.brand-svg .r-word{font-family:Georgia,"Times New Roman",serif;font-size:38px;font-weight:600;letter-spacing:4px;fill:var(--green)}.brand-svg .r-staff{stroke:var(--yellow);stroke-width:1.25;fill:none}.brand-svg .r-note{stroke-width:2.2}.brand-svg .r-tag{font-family:"DM Sans",sans-serif;font-size:6.7px;font-weight:700;letter-spacing:3.5px;fill:var(--green)}.drawer-head .brand-svg .r-word,.login-art .brand-svg .r-word,.splash .brand-svg .r-word{fill:var(--green)}@media(max-width:430px){.brand-svg{width:164px!important;height:59px!important}.brand-svg .r-word{font-size:35px}.brand-svg .r-tag{font-size:6.1px}}
 </style></head>
 <body>
 <div id="root"></div>
@@ -206,7 +209,7 @@ const db = createClient(RITMO_CONFIG.url, RITMO_CONFIG.key);
 const root=document.getElementById("root");
 let session=null, view="home", projects=[], gigs=[], payments=[], expenses=[], passTypes=[], checklistItems=[], boloPasses=[], boloChecklist=[], homeNextPasses=[], kmPrices=[], currentMonth=new Date(), selectedDay=new Date().toISOString().slice(0,10);
 
-function logo(){return `<div class="brand brand-image" aria-label="RITMO · Tu agenda musical"><img src="assets/ritmo-logo-editorial.png" alt="RITMO · Tu agenda musical"></div>`}
+function logo(){return `<div class="brand brand-svg" aria-label="RITMO · Tu agenda musical"><svg viewBox="0 0 300 82" role="img" aria-label="RITMO · Tu agenda musical"><text x="150" y="37" text-anchor="middle" class="r-word">RITMO</text><g class="r-staff"><path d="M73 48H227M73 52H227M73 56H227M73 60H227M73 64H227"/><path class="r-note" d="M158 43v18c-7-4-13 0-13 5 0 5 8 7 13 2V48l42 0"/></g><text x="150" y="78" text-anchor="middle" class="r-tag">TU AGENDA MUSICAL</text></svg></div>`}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;",'\'':"&#039;"}[m]))}
 function money(v){return `${Number(v||0).toFixed(2).replace('.',',')} €`}
 function userInitials(){const n=window.userSettings?.display_name?.trim()||session?.user?.email?.split('@')[0]||'R';return n.split(/\s+/).slice(0,2).map(x=>x[0]?.toUpperCase()||'').join('')}
@@ -482,6 +485,7 @@ db.auth.onAuthStateChange((_e,s)=>{session=s;if(s)start();});start();
 </script>
 </body>
 </html>
+
 
 
 
