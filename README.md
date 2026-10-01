@@ -1,4 +1,6 @@
-# RITMO v1.32.1
+# RITMO v1.32.2
+
+Corrección v1.32.2: cada tarjeta de Próximos compromisos en Inicio abre su ficha. Se elimina la navegación del contenedor al calendario, que interfería con el clic del bolo. Caché PWA actualizada. Sin cambios de Supabase.
 
 Publicación: https://xabemo.github.io/ritmo/
 

@@ -1,4 +1,4 @@
-const CACHE = "ritmo-v13211-original-menu-project-colors";
+const CACHE = "ritmo-v1322-home-gig-detail";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./ritmo-features.js?v=132", "./ritmo-features.css?v=131", "./jspdf.umd.min.js", "./ritmo-admin.js?v=1321", "./ritmo-admin.css?v=13211"];
 
 self.addEventListener("install", (event) => {
