@@ -1,4 +1,4 @@
-const CACHE = "ritmo-v1308";
+const CACHE = "ritmo-v1309";
 const CORE = ["./", "./index.html", "./manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
