@@ -1,5 +1,5 @@
-const CACHE = "ritmo-v1311-guided-pdf";
-const CORE = ["./", "./index.html", "./manifest.webmanifest", "./ritmo-features.js?v=1311", "./ritmo-features.css?v=131", "./jspdf.umd.min.js"];
+const CACHE = "ritmo-v1312-admin-loading";
+const CORE = ["./", "./index.html", "./manifest.webmanifest", "./ritmo-features.js?v=1312", "./ritmo-features.css?v=131", "./jspdf.umd.min.js"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(CORE)).then(() => self.skipWaiting()));

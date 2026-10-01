@@ -5,14 +5,15 @@ const baseBolos131 = bolosView, baseBoloModal131 = modalBolo, baseLogin131 = log
 const dataProblems131 = new Map();
 let tourIndex131 = -1, tourAutoShown131 = false, preparedPdf131 = null;
 let dataOwner131 = null;
+let adminUsersError1312 = "", adminUsersLoading1312 = false, adminUsersRequest1312 = null;
 const baseProjectsLoader131 = loadProjects;
-loadProjects = async function(){const owner=session?.user?.id;if(dataOwner131!==owner){projects=[];gigs=[];payments=[];expenses=[];passTypes=[];checklistItems=[];boloPasses=[];boloChecklist=[];allBoloPasses=[];homeNextPasses=[];kmPrices=[];adminProfiles=[];currentRole='user';dataProblems131.clear();tourAutoShown131=false;preparedPdf131=null;window.currentGigId=null;closeModal();closeTour131(false);dataOwner131=owner}await baseProjectsLoader131()};
+loadProjects = async function(){const owner=session?.user?.id;if(dataOwner131!==owner){projects=[];gigs=[];payments=[];expenses=[];passTypes=[];checklistItems=[];boloPasses=[];boloChecklist=[];allBoloPasses=[];homeNextPasses=[];kmPrices=[];adminProfiles=[];currentRole='user';dataProblems131.clear();adminUsersError1312='';adminUsersLoading1312=false;adminUsersRequest1312=null;tourAutoShown131=false;preparedPdf131=null;window.currentGigId=null;closeModal();closeTour131(false);dataOwner131=owner}await baseProjectsLoader131()};
 
 function extraMenu131(){return `<button onclick="go('help')">${navGlyph('checklist')}<span>Ayuda y primeros pasos</span><span>›</span></button>`}
 more = () => baseMore131().replace('</div><div class="quote">',extraMenu131()+'</div><div class="quote">');
 settingsPage = () => baseSettings131().replace('</div><button class="secondary"',extraMenu131()+'</div><button class="secondary"');
 const baseGo131 = go;
-go = function(v){closeTour131(false);baseGo131(v)};
+go = function(v){closeTour131(false);baseGo131(v);if(v==='admin'&&currentRole==='admin')(async()=>{const request=loadAdminProfiles();render();await request;if(view==='admin')render()})()};
 
 function initialSteps131(){return [
  {id:'project',title:'Crear tu primer proyecto',text:'Tu grupo, orquesta o proyecto musical. Añade también su logo.',done:projects.some(p=>p.active),action:"go('projects');modalProject()"},
@@ -44,7 +45,7 @@ window.addEventListener('resize',()=>{if(tourIndex131>=0)paintTour131()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&tourIndex131>=0)closeTour131(true)});
 
 render = function(){if(view==='help'&&session&&!needsAccountSetup())root.innerHTML=shell(help131());else baseRender131();if(session&&!needsAccountSetup()){
- const content=document.querySelector('.content');if(content&&dataProblems131.size)content.insertAdjacentHTML('afterbegin',`<div class="error data-warning" role="alert">No se han podido actualizar: ${esc([...dataProblems131.keys()].join(', '))}. Los datos pueden estar desactualizados; los importes no están verificados.<button class="secondary" onclick="refreshApp()">Reintentar</button></div>`);
+ const content=document.querySelector('.content');if(content&&dataProblems131.size)content.insertAdjacentHTML('afterbegin',`<div class="error data-warning" role="alert">No se han podido actualizar: ${esc([...dataProblems131.keys()].join(', '))}. ${financialDataProblems1312().length?'Los importes pueden estar desactualizados.':'La información de estas secciones puede estar desactualizada.'}<button class="secondary" onclick="refreshApp()">Reintentar</button></div>`);
  if(!tourAutoShown131&&!document.getElementById('modal')&&(!projects.length||session.user.user_metadata?.onboarding_completed_at)&&!session.user.user_metadata?.tour_seen_version&&!localStorage.getItem('ritmo-tour-'+session.user.id)){tourAutoShown131=true;setTimeout(()=>{if(session&&!needsAccountSetup()&&!document.getElementById('modal'))startTour131()},350)}
  }};
 
@@ -98,10 +99,31 @@ async function prepareRoutePdf131(e,id){e.preventDefault();preparedPdf131=null;c
 function downloadPdf131(){if(preparedPdf131)preparedPdf131.doc.save(preparedPdf131.name)}
 async function sharePdf131(){if(!preparedPdf131)return;const file=new File([preparedPdf131.blob],preparedPdf131.name,{type:'application/pdf'});if(!navigator.canShare?.({files:[file]})){downloadPdf131();return}try{await navigator.share({files:[file],title:'Hoja de ruta RITMO'})}catch(e){if(e.name!=='AbortError')alert('No se pudo compartir el archivo. Usa Descargar PDF.')}}
 function economyPeriodMatch131(date,period=window.economyPeriod||'all'){return period==='all'?true:period==='year'?String(date).slice(0,4)===String(new Date().getFullYear()):String(date).slice(0,7)===period}
-printEconomyReport=async function(){try{if(dataProblems131.size)throw Error('Actualiza los datos antes de exportar el informe.');const selected=window.economyProjectFilter||'',rows=gigs.filter(g=>g.status==='confirmado'&&(!selected||String(g.project_id)===String(selected))&&economyPeriodMatch131(g.event_date)),expenseRows=expenses.filter(x=>(!selected||String(x.project_id)===String(selected))&&economyPeriodMatch131(x.expense_date)),blocks=rows.map(g=>{const total=boloAmounts(g).total,paid=Math.min(total,paymentTotalForBolo(g.id));return {title:g.event_date+' · '+projectById(g.project_id).name,lines:['Generado: '+money(total),'Cobrado: '+money(paid),'Pendiente: '+money(Math.max(0,total-paid))]}});blocks.push({title:'Gastos del periodo',lines:expenseRows.length?expenseRows.map(x=>x.expense_date+' · '+x.category+' · '+money(x.amount)):['Sin gastos registrados']});const doc=await createDocumentPdf131({title:'Informe de cobros',project:selected?projectById(selected).name:'Todos los proyectos',date:'Periodo: '+(window.economyPeriod||'all'),blocks:blocks.length?blocks:[{title:'Resumen',lines:['No hay movimientos en este periodo']}]});doc.save('RITMO-cobros-'+localDate()+'.pdf')}catch(e){alert('No se pudo generar el PDF: '+e.message)}};
+printEconomyReport=async function(){try{if(financialDataProblems1312().length)throw Error('Actualiza bolos, cobros, gastos y tarifas antes de exportar el informe.');const selected=window.economyProjectFilter||'',rows=gigs.filter(g=>g.status==='confirmado'&&(!selected||String(g.project_id)===String(selected))&&economyPeriodMatch131(g.event_date)),expenseRows=expenses.filter(x=>(!selected||String(x.project_id)===String(selected))&&economyPeriodMatch131(x.expense_date)),blocks=rows.map(g=>{const total=boloAmounts(g).total,paid=Math.min(total,paymentTotalForBolo(g.id));return {title:g.event_date+' · '+projectById(g.project_id).name,lines:['Generado: '+money(total),'Cobrado: '+money(paid),'Pendiente: '+money(Math.max(0,total-paid))]}});blocks.push({title:'Gastos del periodo',lines:expenseRows.length?expenseRows.map(x=>x.expense_date+' · '+x.category+' · '+money(x.amount)):['Sin gastos registrados']});const doc=await createDocumentPdf131({title:'Informe de cobros',project:selected?projectById(selected).name:'Todos los proyectos',date:'Periodo: '+(window.economyPeriod||'all'),blocks:blocks.length?blocks:[{title:'Resumen',lines:['No hay movimientos en este periodo']}]});doc.save('RITMO-cobros-'+localDate()+'.pdf')}catch(e){alert('No se pudo generar el PDF: '+e.message)}};
 
-loadAdminProfiles=async function(){if(currentRole!=='admin'){adminProfiles=[];return}const {data,error}=await db.functions.invoke('invite-user',{body:{action:'list'}});if(error||data?.error){dataProblems131.set('usuarios',data?.error||error?.message);return}dataProblems131.delete('usuarios');adminProfiles=data?.users||[]};
-adminView=function(){if(currentRole!=='admin')return `${pageTitle('Administración')}<p class="muted">Esta cuenta no tiene permisos de administración.</p>`;return `${pageTitle('Administración')}${card('Invitar a RITMO','<p class="muted">Una invitación individual para crear nombre y contraseña.</p><button class="primary" onclick="modalInviteUser()">Crear invitación</button>')}${card('Usuarios y acceso',adminProfiles.map(p=>`<div class="admin-user"><div class="grow"><b>${esc(p.name||'Sin nombre')}</b><small>${esc(p.email||'')}</small><span class="status ${p.state==='active'?'paid':'reserve'}">${p.state==='active'?'Activo':p.state==='pending'?'Alta pendiente':'Invitado'}</span></div><div><select aria-label="Rol de ${esc(p.name||p.email)}" onchange="changeUserRole('${p.id}',this.value)"><option value="user" ${p.role!=='admin'?'selected':''}>Usuario</option><option value="admin" ${p.role==='admin'?'selected':''}>Administrador</option></select>${p.state!=='active'?`<button class="secondary" onclick="renewInvite131('${p.id}')">Renovar acceso</button>`:''}</div></div>`).join('')||'<p class="muted">Sin usuarios para mostrar.</p>')}`};
+function financialDataProblems1312(){return ['bolos','cobros','gastos','tarifas'].filter(key=>dataProblems131.has(key))}
+loadAdminProfiles=async function(){
+ dataProblems131.delete('usuarios');
+ if(currentRole!=='admin'){adminProfiles=[];adminUsersError1312='';return}
+ if(view!=='admin')return;
+ if(adminUsersRequest1312)return adminUsersRequest1312;
+ const owner=session.user.id;adminUsersLoading1312=true;adminUsersError1312='';
+ const request=(async()=>{try{
+   const {data,error}=await db.rpc('ritmo_admin_user_list');
+   if(session?.user?.id!==owner||currentRole!=='admin')return;
+   let message=data?.error||'';
+   if(!message&&error?.context){try{message=(await error.context.clone().json())?.error||''}catch(_e){}}
+   if(error||message)throw Error(message||error?.message||'Sin respuesta del servidor');
+   if(!Array.isArray(data))throw Error('El servidor no devolvió un listado de usuarios válido');
+   adminProfiles=data;
+ }catch(error){if(session?.user?.id===owner)adminUsersError1312=error.message||'No se pudo cargar el listado'}
+ finally{if(session?.user?.id===owner)adminUsersLoading1312=false}
+ })();adminUsersRequest1312=request;
+ try{await request}finally{if(adminUsersRequest1312===request)adminUsersRequest1312=null}
+};
+async function retryAdminUsers1312(){await loadAdminProfiles();if(view==='admin')render()}
+
+adminView=function(){if(currentRole!=='admin')return `${pageTitle('Administración')}<p class="muted">Esta cuenta no tiene permisos de administración.</p>`;return `${pageTitle('Administración')}${card('Invitar a RITMO','<p class="muted">Una invitación individual para crear nombre y contraseña.</p><button class="primary" onclick="modalInviteUser()">Crear invitación</button>')}${card('Usuarios y acceso',`${adminUsersLoading1312?'<p class="muted" role="status">Cargando usuarios…</p>':''}${adminUsersError1312?`<div class="error" role="alert">No se pudo actualizar el listado de usuarios.<small style="display:block;margin:8px 0">${esc(adminUsersError1312)}</small><button class="secondary" onclick="retryAdminUsers1312()">Reintentar</button></div>`:''}${adminProfiles.map(p=>`<div class="admin-user"><div class="grow"><b>${esc(p.name||'Sin nombre')}</b><small>${esc(p.email||'')}</small><span class="status ${p.state==='active'?'paid':'reserve'}">${p.state==='active'?'Activo':p.state==='pending'?'Alta pendiente':'Invitado'}</span></div><div><select aria-label="Rol de ${esc(p.name||p.email)}" onchange="changeUserRole('${p.id}',this.value)"><option value="user" ${p.role!=='admin'?'selected':''}>Usuario</option><option value="admin" ${p.role==='admin'?'selected':''}>Administrador</option></select>${p.state!=='active'?`<button class="secondary" onclick="renewInvite131('${p.id}')">Renovar acceso</button>`:''}</div></div>`).join('')||(!adminUsersError1312&&!adminUsersLoading1312?'<p class="muted">Sin usuarios para mostrar.</p>':'')}`)}`};
 function renewInvite131(id){const p=adminProfiles.find(p=>p.id===id);modalInviteUser();document.getElementById('inviteEmail').value=p.email;document.getElementById('inviteName').value=p.name||''}
 
 const baseGoGig131=goGig;goGig=async function(id){try{await baseGoGig131(id)}catch(e){render();alert(e.message)}};
