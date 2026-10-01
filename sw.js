@@ -1,5 +1,5 @@
-const CACHE = "ritmo-v132-admin-feedback";
-const CORE = ["./", "./index.html", "./manifest.webmanifest", "./ritmo-features.js?v=132", "./ritmo-features.css?v=131", "./jspdf.umd.min.js", "./ritmo-admin.js?v=132", "./ritmo-admin.css?v=132"];
+const CACHE = "ritmo-v1321-original-menu-project-colors";
+const CORE = ["./", "./index.html", "./manifest.webmanifest", "./ritmo-features.js?v=132", "./ritmo-features.css?v=131", "./jspdf.umd.min.js", "./ritmo-admin.js?v=1321", "./ritmo-admin.css?v=1321"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(CORE)).then(() => self.skipWaiting()));

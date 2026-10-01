@@ -1,4 +1,4 @@
-# RITMO v1.32
+# RITMO v1.32.1
 
 Publicación: https://xabemo.github.io/ritmo/
 
@@ -13,3 +13,7 @@ Actividad mínima: apertura de secciones/herramientas y tutorial finalizado, fec
 MIGRACION-v1.32-administracion.sql aplicada en Supabase. Pruebas reales de permisos, suspensión, lectura/escritura bloqueadas, reactivación y feedback en transacción descartada; revisión móvil con datos simulados. No se suspenden cuentas reales ni se envían invitaciones durante las pruebas.
 
 Archivos nuevos: ritmo-admin.js y ritmo-admin.css en raíz, junto a index.html y sw.js actualizados. Mantener config.js, ritmo-features.js, ritmo-features.css, jspdf.umd.min.js, assets, icons y manifest.webmanifest. No hace falta ejecutar SQL ni subir archivos manualmente para este proyecto.
+
+Corrección v1.32.1: se recupera el aspecto original del menú lateral (iconos sencillos sin recuadros, lista sobre fondo crema) y se aplica a Más. Se conserva el ajuste de icono de Ajustes y las opciones nuevas de v1.32. Las tarjetas de bolos de Inicio, Calendario, Bolos y Reservas sustituyen el punto de color del proyecto por una franja izquierda de 5 px; en reservas abarca toda la tarjeta. Las bolitas de ficha completada se conservan. Sin cambios de base de datos.
+
+Validación: sintaxis de scripts y revisión móvil con dos proyectos y una reserva; franja por proyecto, sin marcador circular y sin duplicar el borde en tarjetas anidadas.
