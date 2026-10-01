@@ -1,26 +1,9 @@
-# Ritmo v0.1
+# RITMO v1.31
 
-Primera interfaz completa responsive de Ritmo.
+Publicación: https://xabemo.github.io/ritmo/
 
-Incluye:
-- Login real con Supabase Auth.
-- Inicio.
-- Calendario.
-- Ficha de bolo.
-- Reservas.
-- Economía.
-- Estadísticas.
-- Checklist.
-- Mapa.
-- Proyectos.
-- Ajustes.
-- PWA instalable.
-- Identidad visual Ritmo.
+La app usa datos reales de Supabase. Conservar el config.js del repositorio, assets, icons y manifest.webmanifest. Los cinco archivos index.html, sw.js, ritmo-features.js, ritmo-features.css y jspdf.umd.min.js se colocan en raíz.
 
-IMPORTANTE:
-Esta v0.1 ya tiene el login conectado a tu proyecto Supabase, pero las pantallas de negocio todavía utilizan datos de demostración. La siguiente fase conectará estas pantallas a las tablas reales que ya creamos en Supabase.
+La guía aparece al terminar el alta; se repite en Más/Ajustes → Ayuda y primeros pasos. Perfil incluye cambio de contraseña. La ficha permite crear hoja de ruta PDF con bloques elegibles y logo del proyecto, sin campos económicos ni domicilio. Las observaciones y el programa son opcionales y conviene revisar su contenido antes de compartir. El informe de cobros descarga un PDF real.
 
-Para probarla:
-1. Sube estos archivos al repositorio de GitHub.
-2. Abre la web publicada.
-3. Inicia sesión con el usuario de Ritmo.
+MIGRACION-v1.31-fichas.sql ya se aplicó al proyecto actual. La función invite-user se amplió para listar email/estado de cuentas tras verificar el rol administrador. No es necesario pegar SQL ni subir archivos manualmente al proyecto actual.

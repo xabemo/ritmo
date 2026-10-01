@@ -603,8 +603,9 @@ function syncModalViewport(){const vp=window.visualViewport;document.documentEle
 window.visualViewport?.addEventListener('resize',syncModalViewport);window.visualViewport?.addEventListener('scroll',syncModalViewport);syncModalViewport();
 </script>
 <script src="jspdf.umd.min.js"></script>
-<script src="ritmo-features.js?v=131"></script>
+<script src="ritmo-features.js?v=1311"></script>
 <script>db.auth.onAuthStateChange((event,s)=>{const previousUserId=session?.user?.id;session=s;if(event==='PASSWORD_RECOVERY')invitationFlow=true;if(accountSetupSaving)return;if(event==='SIGNED_OUT'){invitationFlow=false;window.userSettings={};login();return}if(s&&previousUserId===s.user.id&&document.getElementById('setupSubmit')&&needsAccountSetup())return;if(s&&['INITIAL_SESSION','SIGNED_IN','PASSWORD_RECOVERY','USER_UPDATED'].includes(event))scheduleAccountStart()});scheduleAccountStart();
 </script>
 </body>
 </html>
+
