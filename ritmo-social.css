@@ -18,3 +18,38 @@
 .feedback-summary137{display:grid;gap:3px;margin:0 0 10px;padding:11px 12px;border-left:4px solid var(--purple);border-radius:12px;background:#faf6ff;font-size:13px}.feedback-summary137 span{color:var(--muted);font-size:12px}.feedback-card137{margin:8px 0!important;padding:0!important;overflow:hidden}.feedback-card137 summary{display:flex;align-items:center;gap:9px;list-style:none;padding:12px;cursor:pointer}.feedback-card137 summary .status{font-size:10px;white-space:nowrap}.feedback-card137-body{padding:0 12px 14px}.feedback-card137-body label{display:grid;gap:5px;margin:12px 0;font-size:12px;color:var(--muted)}.feedback-card137-body select{width:100%}.feedback-card137-body .form{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 .more-page136 .more-family136:nth-child(2){border-color:#e1d8ed}.more-page136 .more-family136:nth-child(2) summary{background:#faf7ff;color:#6b4196}.more-page136 .more-family136:nth-child(2) summary .dn-icon{color:#6b4196}.more-page136 .more-family136:nth-child(2)[open]>div{background:#fdfaff}.more-page136 .more-family136:nth-child(2) .more-row136{color:#67458c}.friends-home136{border-color:#d8d0e6}.friends-home136 button:first-child{background:#faf7ff;color:#67458c}.friends-badge136{background:#7b4bb7;color:#fff}
 .today-center.attention135 .center-item-action:first-child{background:#fff6df}.today-center.attention135 .center-item-action:first-child .ci-icon{color:#704d06}
+
+/* v1.38: Estadísticas supplies the shared type scale; the dashboard supplies the hierarchy. */
+.content{font-size:13px;line-height:1.45}
+.content .card-head b,.content .row-card b,.content .project .grow b{font-size:15px;line-height:1.3}
+.content .card h3,.content .detail h3{font-size:16px;line-height:1.3}
+.content .social-card{font-size:13px}
+.content .social-card h2{font-size:17px}
+.content .social-card h3{font-size:15px}
+.content .more-page136 button,.content .more-family136 summary,.content .friends-home136 button{font-size:14px}
+.content .stat span,.content .essential-grid small,.content .detail-program-head138 small{font-size:11px;font-weight:700;letter-spacing:.04em}
+.content .stat strong{font-size:20px;line-height:1.2}
+.content .line,.content .muted,.content .row-card small{line-height:1.45}
+
+/* Navigation stays ivory and green. Purple is a restrained card accent. */
+.more-page136 .more-family136:nth-child(2){border-color:#dfe3dc}
+.more-page136 .more-family136:nth-child(2) summary{background:transparent;color:var(--green)}
+.more-page136 .more-family136:nth-child(2)[open] summary{background:#f1f5ef}
+.more-page136 .more-family136:nth-child(2) summary .dn-icon,.more-page136 .more-family136:nth-child(2) .more-row136{color:var(--green)}
+.more-page136 .more-family136:nth-child(2)[open]>div{background:#fbfcf9}
+.friends-home136{border-color:var(--line)}
+.friends-home136 button:first-child{background:transparent;color:var(--green)}
+.friends-badge136{background:#e7b341;color:#49370e}
+.stats .stat:nth-child(2),.bolo-summary,.detail-program138,.friends-screen136 .social-card:first-of-type{border-color:#e5dced;background:#fcf9ff;box-shadow:inset 3px 0 var(--purple),0 6px 20px #173f350d}
+.stats .stat:nth-child(2) strong,.bolo-summary .line.total b{color:#684494}
+.detail-program138{margin:10px 0;padding:14px 15px}
+.detail-program-head138{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.detail-program-head138 small{display:block;color:#74509b;margin-bottom:3px}
+.detail-program-head138 h3{margin:0}
+.detail-program-state138{font-size:11px;font-weight:700;color:#684494;background:#eee5f8;border-radius:999px;padding:4px 8px;white-space:nowrap}
+.detail-program138 p{margin:7px 0 10px}
+.detail-program138 .secondary{display:inline-flex;align-items:center;min-height:40px;text-decoration:none}
+.detail .detail-fold{margin:7px 0;border-radius:12px}
+.detail .detail-fold summary{min-height:44px;align-items:center;padding:10px 13px;font-size:13px;line-height:1.25}
+.detail .detail-fold .fold-body{padding:0 13px 13px}
+.detail .detail-fold .fold-body .line{padding:5px 0}
