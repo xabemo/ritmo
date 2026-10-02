@@ -1,18 +1,18 @@
-# RITMO v1.37
+# RITMO v1.38
 
-Supabase: MIGRACION-v1.35.sql aplicada el 2/10/2026. Esta versión solo cambia interfaz; no requiere ejecutar SQL.
+Supabase: MIGRACION-v1.35.sql aplicada el 2/10/2026. Esta versión solo cambia interfaz; no requiere ejecutar SQL. El programa del bolo es una tarjeta siempre visible (incluido un programa compartido) y el resto de apartados plegables ocupa menos altura.
 
 Toda pantalla secundaria muestra una flecha de vuelta contextual: vuelve al apartado desde el que se abrió. Al crear un bolo la fecha comienza vacía, para que no genere un conflicto ficticio con el día actual.
 
 Mi cuenta presenta el cierre de sesión como una acción discreta. Amigos, Administración y Feedback usan listas compactas y desplegables; Administración resume usuarios y Feedback muestra el número de mensajes pendientes y en revisión antes de abrirlos. Centro del día ordena primero las acciones pendientes, conflictos y respuestas.
 
-El violeta se usa de forma consistente para dinero, avisos resumidos y accesos sociales destacados, conservando el verde para acciones y estados confirmados.
+El violeta acentúa solo algunas tarjetas de métricas, resumen de bolos, programa y contenido de amigos; los menús mantienen marfil y verde.
 
 Menú ☰: Mi cuenta, Guía y primeros pasos, Ajustes, Administración (solo administradores), Sugerencias y errores y Actualizar datos. Cerrar sesión queda dentro de Mi cuenta. La X/avatar superior abre exactamente Mi cuenta. Ajustes: proyectos, desplazamientos, tipos de pase y tarifas.
 
 Más agrupa Mi agenda (Mis bolos, Calendario, Reservas, Mapa y Checklist) y Mi dinero (Resumen económico, Gastos y Estadísticas); Amigos queda como acceso directo. Cada apartado de Amigos abre su propia pantalla, con vuelta a la portada de Amigos, para evitar acumular información en una sola vista.
 
-La paleta conserva marfil y verde, pero refuerza la jerarquía: superficies claras para lectura, verde para acciones y confirmaciones, dorado para avisos y violeta reservado a información económica.
+La paleta conserva marfil y verde como base, dorado para avisos y violeta puntual en tarjetas informativas. La tipografía de Estadísticas guía la escala de las demás pantallas; la dashboard guía el contraste entre etiquetas, títulos y números.
 
 Mi cuenta conserva edición de nombre y contraseña, y muestra email y fecha de creación de la cuenta. Los nombres de tipos predeterminados (Concierto, Baile, Marcha, Otro) se personalizan por cuenta; también se editan y crean tipos propios.
 
