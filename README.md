@@ -1,6 +1,12 @@
-# RITMO v1.36
+# RITMO v1.37
 
 Supabase: MIGRACION-v1.35.sql aplicada el 2/10/2026. Esta versión solo cambia interfaz; no requiere ejecutar SQL.
+
+Toda pantalla secundaria muestra una flecha de vuelta contextual: vuelve al apartado desde el que se abrió. Al crear un bolo la fecha comienza vacía, para que no genere un conflicto ficticio con el día actual.
+
+Mi cuenta presenta el cierre de sesión como una acción discreta. Amigos, Administración y Feedback usan listas compactas y desplegables; Administración resume usuarios y Feedback muestra el número de mensajes pendientes y en revisión antes de abrirlos. Centro del día ordena primero las acciones pendientes, conflictos y respuestas.
+
+El violeta se usa de forma consistente para dinero, avisos resumidos y accesos sociales destacados, conservando el verde para acciones y estados confirmados.
 
 Menú ☰: Mi cuenta, Guía y primeros pasos, Ajustes, Administración (solo administradores), Sugerencias y errores y Actualizar datos. Cerrar sesión queda dentro de Mi cuenta. La X/avatar superior abre exactamente Mi cuenta. Ajustes: proyectos, desplazamientos, tipos de pase y tarifas.
 
