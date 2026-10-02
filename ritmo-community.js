@@ -58,3 +58,24 @@ modalBolo=function(id=''){modalBoloBase135(id);const e=teamForBolo134(id);if(!e)
 const routeBase135=routeSheetModel131;
 routeSheetModel131=function(g,selected){const model=routeBase135(g,selected),e=teamForBolo134(g.id);if(e&&selected.includes('notes')){const b=model.blocks.find(x=>x.title==='Observaciones');if(b)b.lines=e.notes.filter(n=>n.kind==='note').map(n=>n.author+': '+n.body); }return model};
 
+/* RITMO 1.36: navegación más clara y cuenta personal. */
+const drawerRows136=menuRows132;
+menuRows132=function(drawer=false){
+ if(!drawer)return drawerRows136(false);
+ return [['help','Guía y primeros pasos'],['settings','Ajustes'],...(currentRole==='admin'?[['admin','Administración']]:[]),['feedback','Sugerencias y errores']].map(([id,label])=>menuRow135(id,label,`menuAction134('${id}',true)`)).join('')+`<div class="menu-footer134">${menuRow135('refresh','Actualizar datos','closeMainMenu();refreshApp()')}</div>`;
+};
+const profileBase136=modalProfile;
+modalProfile=function(){profileBase136();const form=document.querySelector('#modal form');if(form&&!document.querySelector('.account-exit136'))form.insertAdjacentHTML('afterend',`<section class="account-exit136"><p class="muted">Cerrar sesión en este dispositivo.</p><button class="secondary danger" type="button" onclick="closeModal();logout()">Cerrar sesión</button></section>`)};
+/* La X/avatar superior es el acceso a Mi cuenta, igual que en el menú. */
+openUserMenu=function(){modalProfile()};
+function moreRow136(id,label,action){return `<button class="more-row136" onclick="${action}">${originalMenuIcon1321(id)}<span class="dn-label">${label}</span><span aria-hidden="true">›</span></button>`}
+function moreFamily136(id,label,items){return `<details class="more-family136"><summary>${originalMenuIcon1321(id)}<span class="dn-label">${label}</span><span class="family-chevron134" aria-hidden="true">⌄</span></summary><div>${items.map(([item,text,action])=>moreRow136(item,text,action)).join('')}</div></details>`}
+more=function(){return `${pageTitle('Más')}<nav class="more-page136" aria-label="Funciones de RITMO">${moreFamily136('calendar','Mi agenda',[['bolos','Mis bolos',"go('bolos')"],['calendar','Calendario',"go('calendar')"],['reservations','Reservas',"go('reservations')"],['map','Mapa',"go('map')"],['checklist','Checklist',"go('checklist')"]])}${moreFamily136('economy','Mi dinero',[['economy','Resumen económico',"go('economy')"],['expenses','Gastos',"go('expenses')"],['stats','Estadísticas',"go('stats')"]])}${moreRow136('friends','Amigos',"goFriends136('home')")}</nav>`};
+let friendsScreen136='home';
+const friendSections136={today:'Feed · hoy tocan…',friends:'Mis amigos',events:'Proyectos y bolos compartidos',pending:'Peticiones pendientes',messages:'Mensajes de ánimo'};
+function goFriends136(screen='home'){friendsScreen136=screen;if(screen!=='home')socialTab133=screen;closeMainMenu();go('friends')}
+openFriends135=function(tab='pending'){goFriends136(tab)};
+socialTabs133=function(tab){goFriends136(tab)};
+function friendsContent136(id){return id==='today'?socialFeed133():id==='friends'?socialFriends133():id==='events'?sharedProjects135()+socialEvents133():id==='pending'?(socialInvitations133()||'<p class="muted">No tienes peticiones pendientes.</p>'):socialCheers133()}
+friendsPage133=function(){const error=socialError133||teamsError134?`<p class="error">${esc(socialError133||teamsError134)}</p>`:'';if(friendsScreen136!=='home')return `${pageTitle(friendSections136[friendsScreen136]||'Amigos',"goFriends136('home')")}<section class="friends-screen136">${friendsContent136(friendsScreen136)}</section>${error}`;return `${pageTitle('Amigos')}<p class="muted friends-intro136">Conecta con tu gente y organiza los bolos que compartís.</p><nav class="friends-home136" aria-label="Apartados de Amigos">${Object.entries(friendSections136).map(([id,label])=>`<button onclick="goFriends136('${id}')">${originalMenuIcon1321('friends')}<span class="dn-label">${label}${id==='pending'&&pendingSocial135()?` <b class="friends-badge136">${pendingSocial135()}</b>`:''}</span><span aria-hidden="true">›</span></button>`).join('')}</nav>${error}`};
+

@@ -1,8 +1,12 @@
-# RITMO v1.35
+# RITMO v1.36
 
-Supabase: MIGRACION-v1.35.sql aplicada el 2/10/2026. No repetir migraciones antiguas.
+Supabase: MIGRACION-v1.35.sql aplicada el 2/10/2026. Esta versión solo cambia interfaz; no requiere ejecutar SQL.
 
-Menú ☰: Guía y primeros pasos, Ajustes, Administración (solo administradores), Sugerencias y errores, Actualizar datos, Cerrar sesión; Mi cuenta al pie. Ajustes: proyectos, desplazamientos, tipos de pase y tarifas. Más mantiene agenda, economía, amigos y checklist.
+Menú ☰: Mi cuenta, Guía y primeros pasos, Ajustes, Administración (solo administradores), Sugerencias y errores y Actualizar datos. Cerrar sesión queda dentro de Mi cuenta. La X/avatar superior abre exactamente Mi cuenta. Ajustes: proyectos, desplazamientos, tipos de pase y tarifas.
+
+Más agrupa Mi agenda (Mis bolos, Calendario, Reservas, Mapa y Checklist) y Mi dinero (Resumen económico, Gastos y Estadísticas); Amigos queda como acceso directo. Cada apartado de Amigos abre su propia pantalla, con vuelta a la portada de Amigos, para evitar acumular información en una sola vista.
+
+La paleta conserva marfil y verde, pero refuerza la jerarquía: superficies claras para lectura, verde para acciones y confirmaciones, dorado para avisos y violeta reservado a información económica.
 
 Mi cuenta conserva edición de nombre y contraseña, y muestra email y fecha de creación de la cuenta. Los nombres de tipos predeterminados (Concierto, Baile, Marcha, Otro) se personalizan por cuenta; también se editan y crean tipos propios.
 
