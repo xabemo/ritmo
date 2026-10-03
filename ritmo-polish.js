@@ -232,3 +232,52 @@ todayCenter=function(gig,owed){const items=todayReleaseBase142(gig,owed);if(rele
 const homeReleaseBase142=home;
 home=function(){let html=homeReleaseBase142();if(releaseUnread142())html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
 
+
+/* RITMO 1.46: agenda mensual compacta y encuadre de avatar con más aire. */
+function openAgendaCalendar146(){
+  const upcoming=gigs.filter(g=>g.event_date>=localDate()&&g.status!=='cancelado').sort((a,b)=>String(a.event_date).localeCompare(String(b.event_date)))[0];
+  const date=upcoming?.event_date||localDate();
+  currentMonth=new Date(`${date}T12:00:00`);
+  selectedDay=date;
+  window.calendarMode='agenda';
+  go('calendar');
+}
+const calendarBase146=calendar;
+calendar=function(){
+  const mode=window.calendarMode||'month',activeProject=window.calendarProjectFilter||'',today=localDate();
+  if(mode!=='agenda')return calendarBase146();
+  const projectOptions=projects.map(p=>`<option value="${p.id}" ${p.id===activeProject?'selected':''}>${esc(p.name)}</option>`).join('');
+  const switcher=`<div class="calendar-switch"><button onclick="setCalendarMode('month')">▦ Mes</button><button class="active" onclick="setCalendarMode('agenda')">☷ Agenda</button></div>`;
+  const toolbar=`<div class="toolbar agenda-toolbar146"><select onchange="setCalendarProject(this.value)"><option value="">Todos los proyectos</option>${projectOptions}</select></div>`;
+  return `${pageTitle('Calendario')}${switcher}${toolbar}${agendaView146(today,activeProject)}`;
+};
+function agendaView146(today,activeProject){
+  const rows=gigs.filter(g=>g.event_date>=today&&g.status!=='cancelado'&&(!activeProject||g.project_id===activeProject)).sort((a,b)=>String(a.event_date).localeCompare(String(b.event_date)));
+  if(!rows.length)return `<div class="empty-state"><span>♪</span><b>No hay próximos compromisos</b><p class="muted">Cuando añadas un bolo aparecerá aquí en orden cronológico.</p></div>`;
+  const months={};
+  rows.forEach(g=>{const month=String(g.event_date).slice(0,7);(months[month]??={})[g.event_date]??=[];months[month][g.event_date].push(g)});
+  return Object.entries(months).map(([month,days])=>{
+    const monthDate=new Date(`${month}-01T12:00:00`),monthLabel=monthDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'});
+    return `<section class="agenda-month146"><h2>${esc(monthLabel.charAt(0).toUpperCase()+monthLabel.slice(1))}</h2>${Object.entries(days).map(([date,items])=>{
+      const d=new Date(`${date}T12:00:00`),weekday=d.toLocaleDateString('es-ES',{weekday:'short'}).replace('.',''),level=dayConflictLevel(items);
+      return `<div class="agenda-day146"><div class="agenda-day-number146"><b>${String(d.getDate()).padStart(2,'0')}</b><span>${esc(weekday)}</span></div><div class="agenda-day-events146">${items.map(g=>{const p=projectById(g.project_id);return `<button class="agenda-event146 ${level?'agenda-conflict '+(level==='strong'?'strong':''):''}" onclick="goGig('${g.id}')"><i style="background:${esc(p.color||'#7b4bb7')}"></i><span><b>${esc(p.name)}</b><small>${esc(g.location||'Ubicación pendiente')} · ${esc(boloStatusLabel(g.status))}</small></span>${level?`<em>${level==='strong'?'!':'+'}</em>`:''}</button>`}).join('')}</div></div>`}).join('')}</section>`;
+  }).join('');
+}
+
+/* El encuadre parte de la foto completa: permite alejarla y después acercar con dos dedos. */
+function avatarCropLimits144(){
+  const stage=document.getElementById('avatarCropStage144'),s=avatarCrop144;
+  if(!stage||!s?.width||!s?.height)return {x:0,y:0};
+  const side=stage.clientWidth||300,base=Math.min(side/s.width,side/s.height),w=s.width*base*s.zoom,h=s.height*base*s.zoom;
+  return {x:Math.max(0,(w-side)/2),y:Math.max(0,(h-side)/2)};
+}
+function bindAvatarCropTouch144(stage){
+  const pointers=new Map();let start=null;
+  stage.addEventListener('pointerdown',e=>{if(!avatarCrop144)return;stage.setPointerCapture?.(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===1)start={type:'move',x:e.clientX,y:e.clientY,cropX:avatarCrop144.x,cropY:avatarCrop144.y};else if(pointers.size===2){const p=[...pointers.values()];start={type:'pinch',distance:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),zoom:avatarCrop144.zoom}}});
+  stage.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId)||!avatarCrop144||!start)return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===1&&start.type==='move'){avatarCrop144.x=start.cropX+e.clientX-start.x;avatarCrop144.y=start.cropY+e.clientY-start.y}else if(pointers.size===2&&start.type==='pinch'){const p=[...pointers.values()],distance=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);avatarCrop144.zoom=Math.max(.45,Math.min(4,start.zoom*distance/start.distance))}updateAvatarTouch144()});
+  const end=e=>{pointers.delete(e.pointerId);if(pointers.size===1){const p=[...pointers.values()][0];start={type:'move',x:p.x,y:p.y,cropX:avatarCrop144?.x||0,cropY:avatarCrop144?.y||0}}else start=null};stage.addEventListener('pointerup',end);stage.addEventListener('pointercancel',end);
+}
+optimizeAvatar140=function(file){return new Promise((resolve,reject)=>{
+  const s=avatarCrop144?.file===file?avatarCrop144:{file,zoom:1,x:0,y:0},url=s.url||URL.createObjectURL(file),image=new Image();
+  image.onload=()=>{try{const stage=document.getElementById('avatarCropStage144'),display=stage?.clientWidth||300,base=Math.min(display/image.naturalWidth,display/image.naturalHeight),scale=base*(s.zoom||1),w=image.naturalWidth*scale,h=image.naturalHeight*scale,x=(display-w)/2+(s.x||0),y=(display-h)/2+(s.y||0),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{alpha:false});canvas.width=512;canvas.height=512;ctx.fillStyle='#edf2ed';ctx.fillRect(0,0,512,512);ctx.drawImage(image,x*512/display,y*512/display,w*512/display,h*512/display);canvas.toBlob(blob=>{URL.revokeObjectURL(url);if(!blob)return reject(Error('No se pudo optimizar la foto.'));resolve(new File([blob],'avatar.webp',{type:'image/webp'}))},'image/webp',.78)}catch(e){URL.revokeObjectURL(url);reject(e)}};image.onerror=()=>{URL.revokeObjectURL(url);reject(Error('No se pudo leer la foto.'))};image.src=url;
+})};

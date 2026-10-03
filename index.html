@@ -265,7 +265,7 @@ html,body{margin:0!important;padding:0!important;background:#fefbf1!important;ov
 </style><link rel="stylesheet" href="ritmo-features.css?v=131">
 <link rel="stylesheet" href="ritmo-admin.css?v=13211">
 <link rel="stylesheet" href="ritmo-social.css?v=138">
-<link rel="stylesheet" href="ritmo-polish.css?v=145">
+<link rel="stylesheet" href="ritmo-polish.css?v=146">
 </head>
 <body>
 <div id="root"></div>
@@ -423,7 +423,7 @@ function home(){
  <section class="card today-center" id="todayCenter"><button class="center-toggle" onclick="toggleTodayCenter()" aria-expanded="false"><div class="grow"><div class="eyebrow">CENTRO DEL DÍA</div><h3>Lo importante ahora</h3></div><span class="center-count">${todayCenter(g,owed).length} aviso${todayCenter(g,owed).length===1?'':'s'}</span><span class="center-chevron">⌄</span></button><div class="center-items">${center}</div></section>
  <div class="quick"><button class="b1" onclick="go('bolos')"><b>Bolos <span aria-hidden="true">↗</span></b><span>Tu agenda de actuaciones</span></button><button class="b2" onclick="go('economy')"><b>Mi dinero <span aria-hidden="true">↗</span></b><span>Lo cobrado y lo pendiente</span></button></div>
  <section class="hero balance"><div><div class="eyebrow">SALDO PENDIENTE</div><div style="font-size:34px;font-weight:800;margin-top:4px">${money(owed)}</div><div class="muted" style="margin-top:4px">Total que te falta por cobrar</div></div><div style="border-left:1px solid var(--line);padding-left:16px;min-width:0"><div class="eyebrow">POR PROYECTO</div>${mini}</div></section>
- <div class="stats dashboard-work-stats"><div class="stat"><span>Kilómetros · todos los proyectos</span><strong>${km.toLocaleString('es-ES')} km</strong><small class="completion-note">Este año: <b>${kmYear.toLocaleString('es-ES')} km</b></small><small class="km-story">🌍 ${esc(kmEquivalence(km))}</small></div><div class="stat"><span>Fechas ${new Date().getFullYear()}</span><strong>${comp.pct}%</strong><progress class="completion" value="${comp.done}" max="${comp.total||1}" aria-label="Fechas completadas del año"></progress><small class="completion-note">${comp.total?`${comp.done} de ${comp.total} completadas`:'Sin fechas este año'}</small></div></div>
+ <div class="stats dashboard-work-stats"><div class="stat"><span>Kilómetros · todos los proyectos</span><strong>${km.toLocaleString('es-ES')} km</strong><small class="completion-note">Este año: <b>${kmYear.toLocaleString('es-ES')} km</b></small><small class="km-story">🌍 ${esc(kmEquivalence(km))}</small></div><button type="button" class="stat home-calendar-stat146" onclick="openAgendaCalendar146()" aria-label="Abrir calendario en vista de agenda"><span>Fechas ${new Date().getFullYear()}</span><strong>${comp.pct}%</strong><progress class="completion" value="${comp.done}" max="${comp.total||1}" aria-label="Fechas completadas del año"></progress><small class="completion-note">${comp.total?`${comp.done} de ${comp.total} completadas`:'Sin fechas este año'}</small><em>Ver agenda →</em></button></div>
  ${g?`<div class="upcoming-mini">${card('Próximos compromisos',gigs.filter(x=>x.event_date>=localDate()&&x.status!=='cancelado').sort((a,b)=>a.event_date.localeCompare(b.event_date)).slice(0,4).map(gigRow).join(''))}</div>`:''}`
 }
 
@@ -612,7 +612,7 @@ window.visualViewport?.addEventListener('resize',syncModalViewport);window.visua
 <script src="ritmo-routing.js?v=133"></script>
 <script src="ritmo-projects.js?v=135"></script>
 <script src="ritmo-community.js?v=137"></script>
-<script src="ritmo-polish.js?v=145"></script>
+<script src="ritmo-polish.js?v=146"></script>
 <script>db.auth.onAuthStateChange((event,s)=>{const previousUserId=session?.user?.id;session=s;if(event==='PASSWORD_RECOVERY')invitationFlow=true;if(accountSetupSaving)return;if(event==='SIGNED_OUT'){sessionStorage.removeItem('ritmo-place134');restoredPlace134=false;invitationFlow=false;window.userSettings={};login();return}if(s&&previousUserId===s.user.id&&dataOwner131===s.user.id&&!needsAccountSetup()&&['SIGNED_IN','TOKEN_REFRESHED','USER_UPDATED'].includes(event))return;if(s&&previousUserId===s.user.id&&document.getElementById('setupSubmit')&&needsAccountSetup())return;if(s&&['INITIAL_SESSION','SIGNED_IN','PASSWORD_RECOVERY','USER_UPDATED'].includes(event))scheduleAccountStart()});scheduleAccountStart();
 </script>
 </body>
