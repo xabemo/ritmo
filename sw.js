@@ -1,5 +1,5 @@
-const CACHE = "ritmo-v153-ensayos-visual";
-const CORE = ["./", "./index.html", "./manifest.webmanifest", "./ritmo-features.js?v=138", "./ritmo-features.css?v=131", "./jspdf.umd.min.js", "./ritmo-admin.js?v=1321", "./ritmo-admin.css?v=13211", "./ritmo-social.js?v=135", "./ritmo-social.css?v=138", "./ritmo-routing.js?v=133", "./ritmo-projects.js?v=135", "./ritmo-community.js?v=137", "./ritmo-polish.js?v=153", "./ritmo-polish.css?v=153"];
+const CACHE = "ritmo-v154-confirmados-acento";
+const CORE = ["./", "./index.html", "./manifest.webmanifest", "./ritmo-features.js?v=138", "./ritmo-features.css?v=131", "./jspdf.umd.min.js", "./ritmo-admin.js?v=1321", "./ritmo-admin.css?v=13211", "./ritmo-social.js?v=135", "./ritmo-social.css?v=138", "./ritmo-routing.js?v=133", "./ritmo-projects.js?v=135", "./ritmo-community.js?v=137", "./ritmo-polish.js?v=154", "./ritmo-polish.css?v=154"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(CORE)).then(() => self.skipWaiting()));

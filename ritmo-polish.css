@@ -74,3 +74,27 @@
   letter-spacing:.04em;
   text-transform:uppercase;
 }
+
+/* Bolos confirmados: morado como señal clara, sin competir con el lateral de proyecto. */
+.bolo-agenda-row150.is-confirmed154 .bolo-agenda-date150{
+  min-height:38px;
+  align-content:center;
+  padding:3px 4px;
+  border-radius:10px;
+  background:#eee5f7;
+  color:#654180;
+}
+.bolo-agenda-row150.is-confirmed154 .bolo-agenda-date150 small{color:#765292;}
+.confirmed-location154{
+  display:inline-flex;
+  align-items:center;
+  max-width:100%;
+  padding:2px 7px;
+  border-radius:999px;
+  background:#eee5f7;
+  color:#654180;
+  font-size:.72rem;
+  font-weight:800;
+  letter-spacing:.01em;
+  vertical-align:middle;
+}
