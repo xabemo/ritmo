@@ -175,6 +175,52 @@ optimizeAvatar140=function(file){return new Promise((resolve,reject)=>{
   image.onload=()=>{try{const side=Math.min(image.naturalWidth,image.naturalHeight)/Math.max(1,s.zoom||1),freeX=Math.max(0,image.naturalWidth-side),freeY=Math.max(0,image.naturalHeight-side),stage=document.getElementById('avatarCropStage143'),display=stage?.clientWidth||208,base=Math.max(display/image.naturalWidth,display/image.naturalHeight),left=Math.max(0,Math.min(freeX,freeX/2-(s.x||0)/(base*(s.zoom||1)))),top=Math.max(0,Math.min(freeY,freeY/2-(s.y||0)/(base*(s.zoom||1)))),canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;canvas.getContext('2d',{alpha:false}).drawImage(image,left,top,side,side,0,0,512,512);canvas.toBlob(blob=>{URL.revokeObjectURL(url);if(!blob)return reject(Error('No se pudo optimizar la foto.'));resolve(new File([blob],'avatar.webp',{type:'image/webp'}))},'image/webp',.78)}catch(e){URL.revokeObjectURL(url);reject(e)}};
   image.onerror=()=>{URL.revokeObjectURL(url);reject(Error('No se pudo leer la foto.'))};image.src=url;
 })};
+
+/* RITMO 1.44: el encuadre solo aparece al elegir una imagen y permite alejarla. */
+let avatarCrop144=null;
+const profileModalBase144=modalProfile;
+modalProfile=function(){
+  profileModalBase144();
+  const input=document.getElementById('avatarFile139'),thumb=document.getElementById('avatarPreview140'),editor=document.getElementById('avatarCropTouch143'),oldStage=document.getElementById('avatarCropStage143');
+  if(!input||!thumb||!editor||!oldStage||editor.dataset.avatar144)return;
+  editor.dataset.avatar144='1';
+  editor.parentNode.insertBefore(thumb,editor);
+  const stage=oldStage.cloneNode(false);stage.id='avatarCropStage144';stage.className='avatar-crop-stage143';
+  stage.innerHTML='<img id="avatarWorkingPreview144" class="profile-avatar140" alt="Encuadre de la foto"><div class="avatar-crop-guide143"></div>';
+  oldStage.replaceWith(stage);editor.hidden=true;
+  input.setAttribute('onchange','prepareAvatarTouch144(this)');
+  bindAvatarCropTouch144(stage);
+};
+function prepareAvatarTouch144(input){
+  const file=input?.files?.[0],thumb=document.getElementById('avatarPreview140'),work=document.getElementById('avatarWorkingPreview144'),editor=document.getElementById('avatarCropTouch143');
+  if(!file||!thumb||!work||!editor)return;
+  if(avatarCrop144?.url)URL.revokeObjectURL(avatarCrop144.url);
+  avatarCrop144={file,url:URL.createObjectURL(file),zoom:1,x:0,y:0,width:0,height:0};
+  thumb.src=avatarCrop144.url;thumb.hidden=true;
+  work.onload=()=>{avatarCrop144.width=work.naturalWidth;avatarCrop144.height=work.naturalHeight;updateAvatarTouch144()};
+  work.src=avatarCrop144.url;editor.hidden=false;editor.closest('.modal')?.classList.add('avatar-editing144');
+}
+function avatarCropLimits144(){
+  const stage=document.getElementById('avatarCropStage144'),s=avatarCrop144;
+  if(!stage||!s?.width||!s?.height)return {x:0,y:0};
+  const side=stage.clientWidth||300,base=Math.max(side/s.width,side/s.height),w=s.width*base*s.zoom,h=s.height*base*s.zoom;
+  return {x:Math.max(0,(w-side)/2),y:Math.max(0,(h-side)/2)};
+}
+function updateAvatarTouch144(){
+  const work=document.getElementById('avatarWorkingPreview144'),s=avatarCrop144;if(!work||!s)return;
+  const limit=avatarCropLimits144();s.x=Math.max(-limit.x,Math.min(limit.x,s.x));s.y=Math.max(-limit.y,Math.min(limit.y,s.y));
+  work.style.transform=`translate(${s.x}px,${s.y}px) scale(${s.zoom})`;
+}
+function bindAvatarCropTouch144(stage){
+  const pointers=new Map();let start=null;
+  stage.addEventListener('pointerdown',e=>{if(!avatarCrop144)return;stage.setPointerCapture?.(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===1)start={type:'move',x:e.clientX,y:e.clientY,cropX:avatarCrop144.x,cropY:avatarCrop144.y};else if(pointers.size===2){const p=[...pointers.values()];start={type:'pinch',distance:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),zoom:avatarCrop144.zoom}}});
+  stage.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId)||!avatarCrop144||!start)return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===1&&start.type==='move'){avatarCrop144.x=start.cropX+e.clientX-start.x;avatarCrop144.y=start.cropY+e.clientY-start.y}else if(pointers.size===2&&start.type==='pinch'){const p=[...pointers.values()],distance=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);avatarCrop144.zoom=Math.max(.3,Math.min(4,start.zoom*distance/start.distance))}updateAvatarTouch144()});
+  const end=e=>{pointers.delete(e.pointerId);if(pointers.size===1){const p=[...pointers.values()][0];start={type:'move',x:p.x,y:p.y,cropX:avatarCrop144?.x||0,cropY:avatarCrop144?.y||0}}else start=null};stage.addEventListener('pointerup',end);stage.addEventListener('pointercancel',end);
+}
+optimizeAvatar140=function(file){return new Promise((resolve,reject)=>{
+  const s=avatarCrop144?.file===file?avatarCrop144:{file,zoom:1,x:0,y:0},url=s.url||URL.createObjectURL(file),image=new Image();
+  image.onload=()=>{try{const stage=document.getElementById('avatarCropStage144'),display=stage?.clientWidth||300,base=Math.max(display/image.naturalWidth,display/image.naturalHeight),scale=base*(s.zoom||1),w=image.naturalWidth*scale,h=image.naturalHeight*scale,x=(display-w)/2+(s.x||0),y=(display-h)/2+(s.y||0),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d',{alpha:false});canvas.width=512;canvas.height=512;ctx.fillStyle='#edf2ed';ctx.fillRect(0,0,512,512);ctx.drawImage(image,x*512/display,y*512/display,w*512/display,h*512/display);canvas.toBlob(blob=>{URL.revokeObjectURL(url);if(!blob)return reject(Error('No se pudo optimizar la foto.'));resolve(new File([blob],'avatar.webp',{type:'image/webp'}))},'image/webp',.78)}catch(e){URL.revokeObjectURL(url);reject(e)}};image.onerror=()=>{URL.revokeObjectURL(url);reject(Error('No se pudo leer la foto.'))};image.src=url;
+})};
 function releaseUnread142(){return !notificationRead142(['✦','','','release142'])}
 function openRelease142(){localStorage.setItem(releaseKey142(),String(Date.now()));closeModal();render();socialModal133('Novedades de RITMO',`<div class="release-badge140">v${RITMO_RELEASE142.version}</div><h3>${RITMO_RELEASE142.title}</h3><p class="muted">${RITMO_RELEASE142.description}</p><ul class="release-list140">${RITMO_RELEASE142.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul><button class="primary" onclick="closeModal();render()">Entendido</button>`)}
 activityFeed=function(){const items=activityPersistBase141();items.unshift(['✦',RITMO_RELEASE142.title,'Descubre qué ha cambiado en la versión '+RITMO_RELEASE142.version+'.','release142']);return items.filter(notificationAvailable142)};
