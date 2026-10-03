@@ -265,7 +265,7 @@ html,body{margin:0!important;padding:0!important;background:#fefbf1!important;ov
 </style><link rel="stylesheet" href="ritmo-features.css?v=131">
 <link rel="stylesheet" href="ritmo-admin.css?v=13211">
 <link rel="stylesheet" href="ritmo-social.css?v=138">
-<link rel="stylesheet" href="ritmo-polish.css?v=151">
+<link rel="stylesheet" href="ritmo-polish.css?v=152">
 </head>
 <body>
 <div id="root"></div>
@@ -612,7 +612,7 @@ window.visualViewport?.addEventListener('resize',syncModalViewport);window.visua
 <script src="ritmo-routing.js?v=133"></script>
 <script src="ritmo-projects.js?v=135"></script>
 <script src="ritmo-community.js?v=137"></script>
-<script src="ritmo-polish.js?v=151"></script>
+<script src="ritmo-polish.js?v=152"></script>
 <script>db.auth.onAuthStateChange((event,s)=>{const previousUserId=session?.user?.id;session=s;if(event==='PASSWORD_RECOVERY')invitationFlow=true;if(accountSetupSaving)return;if(event==='SIGNED_OUT'){sessionStorage.removeItem('ritmo-place134');restoredPlace134=false;invitationFlow=false;window.userSettings={};login();return}if(s&&previousUserId===s.user.id&&dataOwner131===s.user.id&&!needsAccountSetup()&&['SIGNED_IN','TOKEN_REFRESHED','USER_UPDATED'].includes(event))return;if(s&&previousUserId===s.user.id&&document.getElementById('setupSubmit')&&needsAccountSetup())return;if(s&&['INITIAL_SESSION','SIGNED_IN','PASSWORD_RECOVERY','USER_UPDATED'].includes(event))scheduleAccountStart()});scheduleAccountStart();
 </script>
 </body>

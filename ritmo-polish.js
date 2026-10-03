@@ -544,3 +544,147 @@ const todayReleaseBase151=todayCenter;
 todayCenter=function(gig,owed){const items=todayReleaseBase151(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead151(['✦','','','release151']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE151.version+'.','openRelease151()']);return items};
 const homeReleaseBase151=home;
 home=function(){let html=homeReleaseBase151();if(!notificationRead151(['✦','','','release151']))html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
+
+/* v1.52 — ensayos sin alterar el modelo económico de los bolos confirmados. */
+function isEssay152(g){return g?.readiness_options?.event_kind==='ensayo'}
+function gigTypeLabel152(g){return isEssay152(g)?'Ensayo':boloStatusLabel(g.status)}
+function essayTime152(g){return String(g?.readiness_options?.essay_time||'').slice(0,5)}
+function formRow152(id){return document.getElementById(id)?.closest('label')}
+const modalBoloBase152=modalBolo;
+modalBolo=function(id=''){
+  modalBoloBase152(id);
+  const form=document.querySelector('#modal form'),gig=id?gigs.find(g=>String(g.id)===String(id)):null,status=document.getElementById('bstatus');
+  if(!form||!status)return;
+  const current=String(gig?.status||'confirmado');
+  status.innerHTML=current==='cancelado'?'<option value="cancelado" selected>Cancelado</option>':'<option value="confirmado">Confirmado</option><option value="reserva">Reserva</option>';
+  status.value=current==='reserva'?'reserva':current==='cancelado'?'cancelado':'confirmado';
+  const statusRow=status.closest('label');
+  statusRow.hidden=true;
+  statusRow.insertAdjacentHTML('beforebegin',`<label id="bkindRow152">Tipo de fecha<select id="bkind152"><option value="bolo">Bolo</option><option value="reserva">Reserva</option><option value="ensayo">Ensayo</option></select></label>`);
+  const route=document.querySelector('#modal .route-actions');
+  route?.insertAdjacentHTML('beforebegin',`<label id="btimeRow152" hidden>Hora del ensayo<input id="btime152" type="time" value="${esc(essayTime152(gig))}"></label>`);
+  const type=document.getElementById('bkind152');
+  type.value=isEssay152(gig)?'ensayo':current==='reserva'?'reserva':'bolo';
+  function sync(){
+    const kind=type.value,essay=kind==='ensayo',reserve=kind==='reserva';
+    if(status.querySelector(`option[value="${reserve?'reserva':'confirmado'}"]`))status.value=reserve?'reserva':'confirmado';
+    if(typeof reservationMode134==='function')reservationMode134();
+    document.getElementById('bkindRow152').hidden=false;
+    statusRow.hidden=true;
+    const title=document.querySelector('#modal h2'),button=form.querySelector('button.primary');
+    if(essay){
+      if(title)title.textContent=gig?'Editar ensayo':'Añadir ensayo';
+      if(button)button.textContent=gig?'Guardar cambios':'Guardar ensayo';
+      document.getElementById('btimeRow152').hidden=false;
+      for(const field of ['bhome','bsleep','bfile','bobs']){const row=formRow152(field);if(row)row.hidden=true}
+      const price=formRow152('bprice'),km=formRow152('bkm'),travel=formRow152('btravel');
+      if(price){price.hidden=false;price.firstChild.textContent='Precio del ensayo (opcional)'}
+      if(km){km.hidden=false;km.firstChild.textContent='Kilómetros (opcional)'}
+      if(travel){travel.hidden=false;travel.firstChild.textContent='Cobrar desplazamiento?'}
+      if(!gig&&form.dataset.essayPriceSet!=='1'){document.getElementById('bprice').value='0';form.dataset.essayPriceSet='1'}
+      const note=form.querySelector('.travel-charge-note');if(note)note.hidden=false;
+      const result=document.getElementById('routeResult');if(result)result.hidden=false;
+      route?.removeAttribute('hidden');
+      updateDateConflict(gig?.id||'');
+      return;
+    }
+    document.getElementById('btimeRow152').hidden=true;
+    if(!reserve){
+      for(const field of ['bhome','bsleep','bfile','bobs']){const row=formRow152(field);if(row)row.hidden=false}
+      for(const field of ['bprice','bkm','btravel']){const row=formRow152(field);if(row)row.hidden=false}
+      const price=formRow152('bprice'),km=formRow152('bkm');if(price)price.firstChild.textContent='Precio del bolo';if(km)km.firstChild.textContent='Kilómetros';
+    }
+  }
+  type.addEventListener('change',sync);sync();
+};
+const departureRecommendationBase152=departureRecommendation;
+departureRecommendation=function(g,passes){
+  if(!isEssay152(g))return departureRecommendationBase152(g,passes);
+  const time=essayTime152(g),travel=travelInfo(g);
+  if(!time||!travel.minutes)return null;
+  const [hour,minute]=time.split(':').map(Number);
+  return {first:time,departure:minutesToClock(hour*60+minute-travel.minutes),travel:travel.minutes,margin:0};
+};
+const boloReadinessBase152=boloReadiness;
+boloReadiness=function(g){
+  if(!isEssay152(g))return boloReadinessBase152(g);
+  const steps=[['Ubicación',hasCoordinates(g)],['Hora del ensayo',Boolean(essayTime152(g))]];
+  const missing=steps.filter(step=>!step[1]).map(step=>step[0]);
+  return {steps,done:steps.length-missing.length,total:steps.length,missing};
+};
+const saveBoloBase152=saveBolo;
+saveBolo=async function(event,id=''){
+  const form=event.target;
+  if(document.getElementById('bkind152')?.value!=='ensayo')return saveBoloBase152(event,id);
+  event.preventDefault();
+  if(form.dataset.saving)return;
+  form.dataset.saving='1';
+  const button=form.querySelector('button.primary'),initial=button?.textContent,errorBox=document.getElementById('boloError');
+  if(button){button.disabled=true;button.textContent='Guardando…'}
+  if(errorBox)errorBox.innerHTML='';
+  try{
+    const existing=id?gigs.find(g=>String(g.id)===String(id)):null,location=document.getElementById('blocation').value.trim(),time=document.getElementById('btime152').value;
+    if(!location)throw Error('Añade el lugar del ensayo.');
+    if(!time)throw Error('Indica la hora del ensayo para calcular la salida.');
+    let geo=hasCoordinates(existing)?{lat:Number(existing.latitude),lon:Number(existing.longitude)}:null;
+    if(!existing||existing.location!==location||!geo){geo=await geocodeLocation(location);if(!geo)throw Error('No se ha podido situar esta ubicación. Revisa el nombre de la localidad.')}
+    const kilometers=Math.max(0,Number(document.getElementById('bkm').value||0)),speed=Number(window.userSettings?.average_speed_kmh||0),estimate=routeForSave133(existing,location,kilometers),minutes=estimate?Number(estimate.minutes):(speed>0&&kilometers>0?Math.round(kilometers/2/speed*60):null);
+    const data={user_id:session.user.id,project_id:document.getElementById('bproject').value,event_date:document.getElementById('bdate').value,status:'confirmado',location,latitude:geo.lat,longitude:geo.lon,bolo_price:Math.max(0,Number(document.getElementById('bprice').value||0)),includes_travel:document.getElementById('btravel').value==='true',kilometers,returns_home:true,sleep_location:'',travel_minutes:minutes,observations:'',readiness_options:{...existing?.readiness_options,event_kind:'ensayo',essay_time:time,route_estimate:estimate}};
+    if(!data.event_date)throw Error('Indica el día del ensayo.');
+    const result=existing?await db.from('bolos').update(data).eq('id',existing.id).eq('user_id',session.user.id).select().single():await db.rpc('ritmo_create_bolo',{p_data:data,p_key:form.dataset.requestKey134||(form.dataset.requestKey134=crypto.randomUUID()),p_allow_duplicate:document.getElementById('allowDuplicate134')?.checked===true});
+    if(result.error)throw result.error;
+    form.dataset.savedBoloId=result.data.id;
+    closeModal();await loadGigs();await loadHomeNextPasses();if(typeof rememberPlace134==='function')rememberPlace134();render();
+  }catch(error){if(errorBox)errorBox.innerHTML=`<div class="error">${esc(error.message||String(error))}</div>`}
+  finally{form.dataset.saving='';if(button?.isConnected){button.disabled=false;button.textContent=initial}}
+};
+const detailBase152=detail;
+detail=function(id){
+  const gig=gigs.find(g=>String(g.id)===String(id));let html=detailBase152(id);
+  if(!isEssay152(gig))return html;
+  const time=essayTime152(gig),travel=travelInfo(gig),departure=departureRecommendation(gig,[]);
+  const section=`<section class="card essential-passes essay-time-card152"><h3>Hora del ensayo</h3><div class="line"><span>Empieza</span><b>${esc(time||'Pendiente')}</b></div><div class="line"><span>Salida recomendada</span><b>${departure?esc(departure.departure):'Configura kilómetros o ruta'}</b></div><p class="muted">El ensayo no añade margen previo: la salida se calcula solo con el tiempo de ida${travel.minutes?' ('+travel.minutes+' min)':''}.</p></section>`;
+  html=html.replace(/<section class="card essential-passes">[\s\S]*?<\/section>/,section);
+  return html.replace('<div class="muted">'+esc(gig.event_date)+'</div>','<div class="muted">'+esc(gig.event_date)+' · <b>Ensayo</b></div>');
+};
+function boloCompactRow152(g){
+  const project=projectById(g.project_id)||{name:'Proyecto'},readiness=boloReadiness(g),percent=readiness.total?Math.round(readiness.done/readiness.total*100):0,date=new Date(`${g.event_date}T12:00:00`),day=String(date.getDate()).padStart(2,'0'),weekday=date.toLocaleDateString('es-ES',{weekday:'short'}).replace('.',''),amount=g.status==='cancelado'?0:boloAmounts(g).total,label=g.status==='reserva'?'Previsto':'Total';
+  return `<button class="bolo-agenda-row150 project-rail1321" style="--project-color:${esc(projectRailColor1321(g))}" onclick="goGig('${g.id}')"><span class="bolo-agenda-date150"><b>${day}</b><small>${esc(weekday)}</small></span><span class="bolo-agenda-copy150"><b>${esc(project.name)}</b><small>${esc(g.location||'Ubicación pendiente')} · ${esc(gigTypeLabel152(g))}</small><span class="bolo-agenda-meta150"><strong>${label} ${money(amount)}</strong><span class="bolo-agenda-progress150"><i style="width:${percent}%"></i></span><em>${percent}%</em></span></span><span class="arrow" aria-hidden="true">›</span></button>`;
+}
+boloCompactRow150=boloCompactRow152;
+
+const RITMO_RELEASE152={version:'1.52',title:'RITMO se ha actualizado',description:'Ya puedes registrar ensayos con su hora, importe y desplazamiento.',changes:['Al crear una fecha, Cancelado ya no aparece como opción: una reserva se cancela desde su gestión.','Ensayo incluye día, lugar, hora, precio opcional y kilómetros con cálculo de ruta.','Los ensayos con importe o desplazamiento generan un saldo a cobrar y su salida no añade margen previo.']};
+function releaseKey152(){return `ritmo-release-${RITMO_RELEASE152.version}-${session?.user?.id||'guest'}`}
+function notificationReadAt152(item){return String(item?.[3]||'')==='release152'?Number(localStorage.getItem(releaseKey152())||0):notificationReadAt151(item)}
+function notificationRead152(item){return notificationReadAt152(item)>0}
+function notificationAvailable152(item){const seen=notificationReadAt152(item);return !seen||Date.now()-seen<NOTICE_RETENTION142}
+function openRelease152(){localStorage.setItem(releaseKey152(),String(Date.now()));closeModal();render();socialModal133('Novedades de RITMO',`<div class="release-badge140">v${RITMO_RELEASE152.version}</div><h3>${RITMO_RELEASE152.title}</h3><p class="muted">${RITMO_RELEASE152.description}</p><ul class="release-list140">${RITMO_RELEASE152.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul><button class="primary" onclick="closeModal();render()">Entendido</button>`)}
+const activityBase152=activityFeed;
+activityFeed=function(){const items=activityBase152().filter(item=>String(item?.[3]||'')!=='release151');items.unshift(['✦',RITMO_RELEASE152.title,'Descubre qué ha cambiado en la versión '+RITMO_RELEASE152.version+'.','release152']);return items.filter(notificationAvailable152)};
+activityAlertCount=function(){return activityFeed().filter(item=>!notificationRead152(item)).length};
+const openActivityBase152=openActivity139;
+openActivity139=function(target){if(target==='release152'){openRelease152();return}openActivityBase152(target)};
+function markActivityItemsSeen152(items){const normal=(items||[]).filter(item=>String(item?.[3]||'')!=='release152');markActivityItemsSeen151(normal);if((items||[]).some(item=>String(item?.[3]||'')==='release152'))localStorage.setItem(releaseKey152(),String(Date.now()))}
+openNotifications=function(){const feed=activityFeed(),wasRead=feed.map(notificationRead152);markNotificationsSeen();markActivityItemsSeen152(feed);document.body.insertAdjacentHTML('beforeend',`<div class="modal-bg" id="modal"><div class="modal activity-modal"><div class="modal-head"><div><h2>Notificaciones</h2><div class="muted">Las leídas se conservan durante 24 horas.</div></div><button onclick="closeModal();render()">✕</button></div>${feed.length?`<div class="activity-list">${feed.map((item,index)=>`<button class="activity-item ${wasRead[index]?'is-read142':''}" onclick="openActivity139('${esc(item[3])}')"><span class="activity-icon">${item[0]}</span><div><b>${item[1]}</b><span>${item[2]}</span>${wasRead[index]?'<em>Leída</em>':'<em>Nueva</em>'}</div><span aria-hidden="true">›</span></button>`).join('')}</div>`:`<div class="activity-empty">✓<br><br>No hay novedades recientes.</div>`}</div></div>`) };
+const todayReleaseBase152=todayCenter;
+todayCenter=function(gig,owed){const items=todayReleaseBase152(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead152(['✦','','','release152']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE152.version+'.','openRelease152()']);return items};
+const homeReleaseBase152=home;
+home=function(){let html=homeReleaseBase152();if(!notificationRead152(['✦','','','release152']))html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
+
+/* Etiquetas de ensayo en todas las consultas de agenda. */
+const gigRowBase152=gigRow;
+gigRow=function(g){
+  const project=projectById(g.project_id),amounts=boloAmounts(g),amountLabel=g.status==='reserva'?'Previsto':g.status==='cancelado'?'Cancelado':'Total',displayTotal=g.status==='cancelado'?0:amounts.total,type=gigTypeLabel152(g);
+  return `<button class="row-card project-rail1321" style="--project-color:${projectRailColor1321(g)}" onclick="goGig('${g.id}')"><span class="grow"><b>${esc(project.name)}</b><small>${esc(g.event_date)} · ${esc(g.location||'Ubicación pendiente')} · ${esc(type)}</small><span class="bolo-money"><span>${amountLabel}</span><b>${money(displayTotal)}</b></span>${boloReadinessMarkup(g)}</span><span class="status ${boloStatusClass(g.status)}">${esc(type)}</span><span class="arrow">›</span></button>`;
+};
+homeUpcoming139=function(){
+  const rows=gigs.filter(g=>g.event_date>=localDate()&&g.status!=='cancelado').sort((a,b)=>a.event_date.localeCompare(b.event_date)).slice(0,4);
+  return `<section class="card upcoming-simple139"><div class="card-head"><b>Próximas fechas</b><span class="arrow">›</span></div>${rows.map(g=>{const read=boloReadiness(g),percent=read.total?Math.round(read.done/read.total*100):0;return `<button class="upcoming-row139" onclick="goGig('${g.id}')"><span class="upcoming-date139">${new Date(g.event_date+'T12:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'short'})}</span><span class="upcoming-info139"><b>${esc(projectById(g.project_id).name)}</b><small>${esc(g.location||'Ubicación pendiente')} · ${esc(gigTypeLabel152(g))}</small><span class="upcoming-progress139"><span style="width:${percent}%"></span></span><small>Ficha ${percent}% completa</small></span><span class="arrow" aria-hidden="true">›</span></button>`}).join('')||'<p class="muted">Todavía no hay fechas próximas.</p>'}</section>`;
+};
+function agendaView152(today,activeProject){
+  const rows=gigs.filter(g=>g.event_date>=today&&g.status!=='cancelado'&&(!activeProject||g.project_id===activeProject)).sort((a,b)=>String(a.event_date).localeCompare(String(b.event_date)));
+  if(!rows.length)return `<div class="empty-state"><span>♪</span><b>No hay próximas fechas</b><p class="muted">Cuando añadas un bolo o un ensayo aparecerá aquí en orden cronológico.</p></div>`;
+  const months={};rows.forEach(g=>{const month=String(g.event_date).slice(0,7);(months[month]??={})[g.event_date]??=[];months[month][g.event_date].push(g)});
+  return Object.entries(months).map(([month,days])=>{const date=new Date(`${month}-01T12:00:00`),label=date.toLocaleDateString('es-ES',{month:'long',year:'numeric'});return `<section class="agenda-month146"><h2>${esc(label.charAt(0).toUpperCase()+label.slice(1))}</h2>${Object.entries(days).map(([day,items])=>{const d=new Date(`${day}T12:00:00`),weekday=d.toLocaleDateString('es-ES',{weekday:'short'}).replace('.',''),level=dayConflictLevel(items);return `<div class="agenda-day146"><div class="agenda-day-number146"><b>${String(d.getDate()).padStart(2,'0')}</b><span>${esc(weekday)}</span></div><div class="agenda-day-events146">${items.map(g=>{const project=projectById(g.project_id);return `<button class="agenda-event146 ${level?'agenda-conflict '+(level==='strong'?'strong':''):''}" onclick="goGig('${g.id}')"><i style="background:${esc(project.color||'#7b4bb7')}"></i><span><b>${esc(project.name)}</b><small>${esc(g.location||'Ubicación pendiente')} · ${esc(gigTypeLabel152(g))}</small></span>${level?`<em>${level==='strong'?'!':'+'}</em>`:''}</button>`}).join('')}</div></div>`}).join('')}</section>`}).join('');
+}
+agendaView146=agendaView152;
