@@ -737,3 +737,84 @@ const todayReleaseBase154=todayCenter;
 todayCenter=function(gig,owed){const items=todayReleaseBase154(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead154(['✦','','','release154']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE154.version+'.','openRelease154()']);return items};
 const homeReleaseBase154=home;
 home=function(){let html=homeReleaseBase154();if(!notificationRead154(['✦','','','release154']))html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
+
+/* v1.55 — actividad anual y proyecto principal. */
+function defaultProject155(){
+  const preferred=window.userSettings?.default_project_id;
+  return projects.find(p=>p.active&&String(p.id)===String(preferred))?.id||projects.find(p=>p.active)?.id||'';
+}
+async function saveDefaultProject155(projectId){
+  const payload={default_project_id:projectId||null,updated_at:new Date().toISOString()};
+  const result=window.userSettings?.user_id?await db.from('user_settings').update(payload).eq('user_id',session.user.id):await db.from('user_settings').insert({...payload,user_id:session.user.id});
+  if(result.error)throw result.error;
+  await loadUserSettings();
+}
+const modalProjectBase155=modalProject;
+modalProject=function(id=''){
+  modalProjectBase155(id);
+  const project=projects.find(p=>String(p.id)===String(id)),status=document.getElementById('pactive')?.closest('label');
+  if(status)status.insertAdjacentHTML('afterend',`<label class="export-check project-main155"><input id="pprojectmain155" type="checkbox" ${String(project?.id||'')===String(window.userSettings?.default_project_id||'')?'checked':''}> Proyecto principal <small>Se propondrá al añadir bolos y cobros.</small></label>`);
+};
+saveProject=async function(e,id=''){
+  e.preventDefault();
+  const form=e.target;if(form.dataset.saving)return;form.dataset.saving='1';
+  const err=document.getElementById('projectError'),button=form.querySelector('button.primary');button.disabled=true;err.innerHTML='';
+  try{
+    const file=document.getElementById('projectLogo131')?.files?.[0],active=document.getElementById('pactive').value==='true',primary=document.getElementById('pprojectmain155')?.checked===true;
+    if(primary&&!active)throw Error('El proyecto principal debe estar activo.');
+    if(file&&(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>5*1024*1024))throw Error('Elige una imagen de hasta 5 MB.');
+    let logoUrl=projects.find(p=>String(p.id)===String(id))?.logo_url||null;
+    if(file)logoUrl=await uploadBoloFile(file,'projects');else if(document.getElementById('removeLogo131')?.checked)logoUrl=null;
+    const payload={name:document.getElementById('pname').value.trim(),color:document.getElementById('pcolor').value,default_bolo_price:Number(document.getElementById('pprice').value||0),active,logo_url:logoUrl};
+    const result=id?await db.from('projects').update(payload).eq('id',id).eq('user_id',session.user.id).select('id').single():await db.from('projects').insert({...payload,user_id:session.user.id}).select('id').single();
+    if(result.error)throw result.error;
+    const savedId=result.data?.id||id,currentDefault=String(window.userSettings?.default_project_id||'');
+    if(primary)await saveDefaultProject155(savedId);else if(currentDefault&&currentDefault===String(savedId))await saveDefaultProject155('');
+    if(payload.default_bolo_price===0)await saveUserMetadata131({zero_fee_configured:true});
+    await loadProjects();closeModal();render();
+  }catch(error){err.innerHTML=`<div class="error">${esc(error.message||String(error))}</div>`}
+  finally{delete form.dataset.saving;if(button?.isConnected)button.disabled=false}
+};
+const modalBoloBase155=modalBolo;
+modalBolo=function(id=''){
+  modalBoloBase155(id);
+  if(id)return;
+  const preferred=defaultProject155(),selector=document.getElementById('bproject');
+  if(preferred&&selector){selector.value=preferred;boloProjectChanged();if(typeof updateTravelCalculation148==='function')updateTravelCalculation148();}
+};
+const modalCobroBase155=modalCobro;
+modalCobro=function(...args){
+  modalCobroBase155(...args);
+  const preferred=defaultProject155(),selector=document.getElementById('payproject');
+  if(preferred&&selector){selector.value=preferred;refreshPaymentBolos('paybolo',preferred);}
+  updatePaymentAutomaticCopy151();
+};
+function annualProjectActivity155(){
+  const year=String(new Date().getFullYear()),rows=projects.map(project=>{
+    const dates=gigs.filter(g=>String(g.event_date||'').startsWith(year+'-')&&g.status!=='cancelado'&&String(g.project_id)===String(project.id));
+    const essays=dates.filter(isEssay152).length,bolos=dates.length-essays;
+    return {project,bolos,essays,total:dates.length};
+  }).filter(row=>row.total).sort((a,b)=>b.total-a.total||a.project.name.localeCompare(b.project.name,'es'));
+  const detail=row=>`${row.bolos} ${row.bolos===1?'bolo':'bolos'}${row.essays?` · ${row.essays} ${row.essays===1?'ensayo':'ensayos'}`:''}`;
+  return `<section class="card annual-projects155"><div class="annual-projects-head155"><div><small>ACTIVIDAD ${year}</small><h3>Fechas por proyecto</h3></div><span>${rows.reduce((n,row)=>n+row.total,0)} fechas</span></div>${rows.length?`<div class="annual-project-list155">${rows.map(row=>`<button onclick="window.bolosProject='${esc(row.project.id)}';go('bolos')"><i style="background:${esc(row.project.color||'#7b4bb7')}"></i><b>${esc(row.project.name)}</b><small>${detail(row)}</small><span>›</span></button>`).join('')}</div>`:'<p class="muted">Aún no hay bolos ni ensayos en ${year}.</p>'}</section>`;
+}
+const homeBase155=home;
+home=function(){let html=homeBase155(),anchor='<section class="card upcoming-simple139">';return html.includes(anchor)?html.replace(anchor,annualProjectActivity155()+anchor):html};
+
+const RITMO_RELEASE155={version:'1.55',title:'RITMO se ha actualizado',description:'Inicio y los proyectos ahora ayudan a trabajar con la agenda más rápido.',changes:['Inicio muestra las fechas y ensayos de este año por proyecto.','Cada proyecto puede marcarse como principal desde Ajustes → Gestionar proyectos.','El proyecto principal se propone automáticamente al crear un bolo o registrar un cobro.']};
+function releaseKey155(){return `ritmo-release-${RITMO_RELEASE155.version}-${session?.user?.id||'guest'}`}
+function notificationReadAt155(item){return String(item?.[3]||'')==='release155'?Number(localStorage.getItem(releaseKey155())||0):notificationReadAt154(item)}
+function notificationRead155(item){return notificationReadAt155(item)>0}
+function notificationAvailable155(item){const seen=notificationReadAt155(item);return !seen||Date.now()-seen<NOTICE_RETENTION142}
+function openRelease155(){localStorage.setItem(releaseKey155(),String(Date.now()));closeModal();render();socialModal133('Novedades de RITMO',`<div class="release-badge140">v${RITMO_RELEASE155.version}</div><h3>${RITMO_RELEASE155.title}</h3><p class="muted">${RITMO_RELEASE155.description}</p><ul class="release-list140">${RITMO_RELEASE155.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul><button class="primary" onclick="closeModal();render()">Entendido</button>`) }
+const activityBase155=activityFeed;
+activityFeed=function(){const items=activityBase155().filter(item=>String(item?.[3]||'')!=='release154');items.unshift(['✦',RITMO_RELEASE155.title,'Descubre qué ha cambiado en la versión '+RITMO_RELEASE155.version+'.','release155']);return items.filter(notificationAvailable155)};
+activityAlertCount=function(){return activityFeed().filter(item=>!notificationRead155(item)).length};
+const openActivityBase155=openActivity139;
+openActivity139=function(target){if(target==='release155'){openRelease155();return}openActivityBase155(target)};
+function markActivityItemsSeen155(items){const normal=(items||[]).filter(item=>String(item?.[3]||'')!=='release155');markActivityItemsSeen154(normal);if((items||[]).some(item=>String(item?.[3]||'')==='release155'))localStorage.setItem(releaseKey155(),String(Date.now()))}
+openNotifications=function(){const feed=activityFeed(),wasRead=feed.map(notificationRead155);markNotificationsSeen();markActivityItemsSeen155(feed);document.body.insertAdjacentHTML('beforeend',`<div class="modal-bg" id="modal"><div class="modal activity-modal"><div class="modal-head"><div><h2>Notificaciones</h2><div class="muted">Las leídas se conservan durante 24 horas.</div></div><button onclick="closeModal();render()">✕</button></div>${feed.length?`<div class="activity-list">${feed.map((item,index)=>`<button class="activity-item ${wasRead[index]?'is-read142':''}" onclick="openActivity139('${esc(item[3])}')"><span class="activity-icon">${item[0]}</span><div><b>${item[1]}</b><span>${item[2]}</span>${wasRead[index]?'<em>Leída</em>':'<em>Nueva</em>'}</div><span aria-hidden="true">›</span></button>`).join('')}</div>`:`<div class="activity-empty">✓<br><br>No hay novedades recientes.</div>`}</div></div>`) };
+const todayReleaseBase155=todayCenter;
+todayCenter=function(gig,owed){const items=todayReleaseBase155(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead155(['✦','','','release155']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE155.version+'.','openRelease155()']);return items};
+const homeReleaseBase155=home;
+home=function(){let html=homeReleaseBase155();if(!notificationRead155(['✦','','','release155']))html=html.replace('class="card today-center"','class="card today-center attention135"');return html};

@@ -98,3 +98,7 @@
   letter-spacing:.01em;
   vertical-align:middle;
 }
+
+/* Actividad anual: lectura compacta entre el resumen y los próximos bolos. */
+.annual-projects155{padding:13px 14px;margin-bottom:14px;border-color:#d8c9e7;background:linear-gradient(135deg,#fcfaff,#fffdf8)}
+.annual-projects-head155{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}.annual-projects-head155 small{display:block;color:#80679a;font-size:10px;font-weight:900;letter-spacing:.1em}.annual-projects-head155 h3{margin:2px 0 0;color:var(--green);font-size:16px}.annual-projects-head155>span{flex:0 0 auto;padding:5px 8px;border-radius:999px;background:#eee5f7;color:#654180;font-size:11px;font-weight:900}.annual-project-list155{display:grid;gap:2px}.annual-project-list155 button{display:grid;grid-template-columns:8px minmax(0,1fr) max-content 12px;align-items:center;gap:8px;width:100%;padding:7px 1px;border:0;border-top:1px solid #ebe5ef;background:transparent;color:inherit;font:inherit;text-align:left}.annual-project-list155 button:first-child{border-top:0}.annual-project-list155 i{width:8px;height:8px;border-radius:50%}.annual-project-list155 b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.annual-project-list155 small{color:#765292;font-size:11px;font-weight:800;white-space:nowrap}.annual-project-list155 span{color:#80679a;font-size:17px}.project-main155{margin:2px 0 6px}.project-main155 small{display:block;margin:3px 0 0;color:var(--muted);font-size:11px;line-height:1.35}
