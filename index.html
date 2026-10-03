@@ -265,6 +265,7 @@ html,body{margin:0!important;padding:0!important;background:#fefbf1!important;ov
 </style><link rel="stylesheet" href="ritmo-features.css?v=131">
 <link rel="stylesheet" href="ritmo-admin.css?v=13211">
 <link rel="stylesheet" href="ritmo-social.css?v=138">
+<link rel="stylesheet" href="ritmo-polish.css?v=139">
 </head>
 <body>
 <div id="root"></div>
@@ -578,7 +579,7 @@ async function deletePayment(id){if(!confirm('¿Eliminar este cobro?'))return;co
 function closeModal(){document.getElementById('modal')?.remove()}
 async function logout(){await db.auth.signOut();session=null;projects=[];gigs=[];login()}
 function needsAccountSetup(){return Boolean(session&&(invitationFlow||hasPendingSetup()||session.user?.user_metadata?.requires_onboarding===true||!window.userSettings?.user_id))}
-function accountSetup(){rememberPendingSetup();const suggested=session?.user?.user_metadata?.name||session?.user?.email?.split('@')[0]||'';root.innerHTML=`<div class="login"><div class="login-art">${logo()}<p>Tu música, en orden.</p></div><form class="login-card" onsubmit="finishAccountSetup(event)"><h1>Completa tu acceso</h1><p class="muted">Tu invitación está lista. Elige cómo quieres aparecer en RITMO y crea una contraseña para volver a entrar cuando quieras.</p><label>Nombre artístico o nombre<input id="setupName" maxlength="80" required value="${esc(suggested)}"></label><label>Crea una contraseña<input id="setupPassword" type="password" minlength="8" autocomplete="new-password" required></label><label>Repite la contraseña<input id="setupPasswordRepeat" type="password" minlength="8" autocomplete="new-password" required></label><div id="setupError"></div><button id="setupSubmit" class="primary">Guardar y entrar</button></form></div>`}
+function accountSetup(){rememberPendingSetup();const suggested=session?.user?.user_metadata?.name||session?.user?.email?.split('@')[0]||'';root.innerHTML=`<div class="login"><div class="login-art">${logo()}<p>Voy a mi RITMO.</p></div><form class="login-card" onsubmit="finishAccountSetup(event)"><h1>Completa tu acceso</h1><p class="muted">Tu invitación está lista. Elige cómo quieres aparecer en RITMO y crea una contraseña para volver a entrar cuando quieras.</p><label>Nombre artístico o nombre<input id="setupName" maxlength="80" required value="${esc(suggested)}"></label><label>Crea una contraseña<input id="setupPassword" type="password" minlength="8" autocomplete="new-password" required></label><label>Repite la contraseña<input id="setupPasswordRepeat" type="password" minlength="8" autocomplete="new-password" required></label><div id="setupError"></div><button id="setupSubmit" class="primary">Guardar y entrar</button></form></div>`}
 async function finishAccountSetup(e){
  e.preventDefault();if(accountSetupSaving)return;
  const err=document.getElementById('setupError'),button=document.getElementById('setupSubmit'),name=document.getElementById('setupName').value.trim(),password=document.getElementById('setupPassword').value,repeat=document.getElementById('setupPasswordRepeat').value;
@@ -590,7 +591,7 @@ async function finishAccountSetup(e){
   invitationFlow=false;clearPendingSetup();window.history.replaceState({},document.title,window.location.origin+window.location.pathname);accountSetupSaving=false;await start();
  }catch(error){accountSetupSaving=false;button.disabled=false;button.textContent='Guardar y entrar';err.innerHTML=`<div class="error">No se ha podido completar tu acceso: ${esc(error.message)}. Vuelve a intentarlo.</div>`}
 }
-function login(){root.innerHTML=`<div class="login"><div class="login-art">${logo()}<p>Tu música, en orden.</p></div><form class="login-card" onsubmit="loginSubmit(event)"><h1>Bienvenido</h1><p class="muted">Accede a tu cuenta de Ritmo.</p><label>Email<input id="email" type="email" required></label><label>Contraseña<input id="password" type="password" required></label><div id="loginError"></div><button class="primary">Iniciar sesión</button></form></div>`}
+function login(){root.innerHTML=`<div class="login"><div class="login-art">${logo()}<p>Voy a mi RITMO.</p></div><form class="login-card" onsubmit="loginSubmit(event)"><h1>Bienvenido</h1><p class="muted">Accede a tu cuenta de Ritmo.</p><label>Email<input id="email" type="email" required></label><label>Contraseña<input id="password" type="password" required></label><div id="loginError"></div><button class="primary">Iniciar sesión</button></form></div>`}
 async function loginSubmit(e){e.preventDefault();view='home';window.currentGigId=null;const err=document.getElementById('loginError');err.innerHTML='';const {error}=await db.auth.signInWithPassword({email:document.getElementById('email').value,password:document.getElementById('password').value});if(error)err.innerHTML=`<div class="error">${esc(error.message)}</div>`}
 async function start(){if(accountSetupSaving)return;if(accountStartPromise)return accountStartPromise;accountStartPromise=startAccount();try{await accountStartPromise}finally{accountStartPromise=null}}
 async function startAccount(){
@@ -611,6 +612,7 @@ window.visualViewport?.addEventListener('resize',syncModalViewport);window.visua
 <script src="ritmo-routing.js?v=133"></script>
 <script src="ritmo-projects.js?v=135"></script>
 <script src="ritmo-community.js?v=137"></script>
+<script src="ritmo-polish.js?v=139"></script>
 <script>db.auth.onAuthStateChange((event,s)=>{const previousUserId=session?.user?.id;session=s;if(event==='PASSWORD_RECOVERY')invitationFlow=true;if(accountSetupSaving)return;if(event==='SIGNED_OUT'){sessionStorage.removeItem('ritmo-place134');restoredPlace134=false;invitationFlow=false;window.userSettings={};login();return}if(s&&previousUserId===s.user.id&&dataOwner131===s.user.id&&!needsAccountSetup()&&['SIGNED_IN','TOKEN_REFRESHED','USER_UPDATED'].includes(event))return;if(s&&previousUserId===s.user.id&&document.getElementById('setupSubmit')&&needsAccountSetup())return;if(s&&['INITIAL_SESSION','SIGNED_IN','PASSWORD_RECOVERY','USER_UPDATED'].includes(event))scheduleAccountStart()});scheduleAccountStart();
 </script>
 </body>

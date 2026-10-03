@@ -2,7 +2,7 @@
   "id": "./?ritmo-pwa=1270",
   "name": "RITMO · Tu agenda musical",
   "short_name": "RITMO",
-  "description": "Agenda privada para gestionar bolos, cobros y actividad musical.",
+  "description": "Voy a mi RITMO. Tu agenda musical para bolos, cobros y actividad.",
   "start_url": "./?source=pwa-v1270",
   "scope": "./",
   "display": "standalone",
