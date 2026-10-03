@@ -1,3 +1,14 @@
+# RITMO v1.40
+
+Publicación del 3/10/2026. No requiere migración de Supabase. El avatar de Mi cuenta se muestra siempre redondo y, al elegir una foto, se recorta al centro y se convierte en una miniatura WebP de 512 px al 78% de calidad antes de subirla. Así se evita guardar la imagen original y se reduce el espacio y la carga de datos.
+
+Mis bolos ya no usa bolitas para la completitud de la ficha: muestra la misma barra y porcentaje que Inicio. La ficha detallada conserva sus indicadores de cada dato para explicar qué falta. Debajo del saludo de Inicio aparece una frase diaria breve, como «Hoy vas a tu… RITMO», que rota entre varios mensajes musicales. También se estabiliza el buscador de Mis bolos al actualizar el listado.
+
+Cada versión puede anunciarse a los usuarios dentro de RITMO. El aviso aparece una vez por usuario en la campana y en Centro del día, con un resumen de cambios. Para futuras versiones basta con actualizar el objeto `RITMO_RELEASE140` y el número de caché en `sw.js` junto a los archivos de la entrega.
+
+Las notificaciones externas siguen pendientes: requieren Web Push, permiso explícito de cada persona y una función de backend que envíe avisos incluso con la PWA cerrada.
+
+---
 # RITMO v1.39
 
 Publicación del 3/10/2026. `MIGRACION-v1.39-hoy-tocan.sql` se aplicó en Supabase antes de publicar. Añade a «Hoy tocan» un mensaje opcional y la posibilidad de compartir ubicación completa y horarios de pases con amigos aceptados; la localidad sale de la ficha del bolo. No se comparten datos económicos ni el domicilio. La ubicación compartida abre una búsqueda en Google Maps.

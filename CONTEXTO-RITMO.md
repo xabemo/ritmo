@@ -1,3 +1,8 @@
+# RITMO v1.40
+
+Publicación del 3/10/2026. No requiere migración. Avatar circular con previsualización y optimización local a WebP 512 px / calidad 78% antes de usar `ritmo-files`; barra de completitud y porcentaje en Mis bolos; aviso interno de cambios de versión por usuario en campana y Centro del día; frase musical diaria bajo el saludo de Inicio. También se corrige la persistencia del buscador de Mis bolos. Los textos de publicación se gestionan desde `RITMO_RELEASE140` en `ritmo-polish.js` y el caché de `sw.js` debe subir de versión en cada entrega. Web Push externo aún no existe.
+
+---
 # RITMO v1.39
 
 Publicación del 3/10/2026. `MIGRACION-v1.39-hoy-tocan.sql` se aplicó en Supabase antes de publicar. Añade a «Hoy tocan» un mensaje opcional y la posibilidad de compartir ubicación completa y horarios de pases con amigos aceptados; la localidad sale de la ficha del bolo. No se comparten datos económicos ni el domicilio. La ubicación compartida abre una búsqueda en Google Maps.

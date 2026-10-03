@@ -265,7 +265,7 @@ html,body{margin:0!important;padding:0!important;background:#fefbf1!important;ov
 </style><link rel="stylesheet" href="ritmo-features.css?v=131">
 <link rel="stylesheet" href="ritmo-admin.css?v=13211">
 <link rel="stylesheet" href="ritmo-social.css?v=138">
-<link rel="stylesheet" href="ritmo-polish.css?v=139">
+<link rel="stylesheet" href="ritmo-polish.css?v=140">
 </head>
 <body>
 <div id="root"></div>
@@ -470,7 +470,7 @@ function printEconomyReport(){}
 
 function economy(){const base=economyBase(),aging=debtAging(window.economyProjectFilter||'');const debt=card('Deuda por antigüedad',`<div class="line"><span>Menos de 30 días</span><b>${money(aging.fresh)}</b></div><div class="line"><span>De 30 a 60 días</span><b>${money(aging.mid)}</b></div><div class="line total"><span>Más de 60 días</span><b>${money(aging.old)}</b></div><button class="secondary" style="width:100%;margin-top:12px" onclick="printEconomyReport()">Exportar informe PDF</button>`);return base+debt}function bolosView(){
  const f=window.bolosFilter||'activos',project=window.bolosProject||'';
- const search=(window.boloSearch131||'').trim().toLocaleLowerCase('es');const all=gigs.filter(g=>(!project||g.project_id===project)&&(!search||((g.location||'')+' '+projectById(g.project_id).name).toLocaleLowerCase('es').includes(search))); 
+ const search=(window.ritmoBoloSearch131||'').trim().toLocaleLowerCase('es');const all=gigs.filter(g=>(!project||g.project_id===project)&&(!search||((g.location||'')+' '+projectById(g.project_id).name).toLocaleLowerCase('es').includes(search))); 
  const list=all.filter(g=>f==='cancelado'?g.status==='cancelado':g.status!=='cancelado').sort((a,b)=>String(a.event_date).localeCompare(String(b.event_date)));
  const opts=[['activos','Confirmados y reservas'],['cancelado','Cancelados']];
  const moneyRows=list.filter(g=>g.status==='confirmado');
@@ -612,7 +612,7 @@ window.visualViewport?.addEventListener('resize',syncModalViewport);window.visua
 <script src="ritmo-routing.js?v=133"></script>
 <script src="ritmo-projects.js?v=135"></script>
 <script src="ritmo-community.js?v=137"></script>
-<script src="ritmo-polish.js?v=139"></script>
+<script src="ritmo-polish.js?v=140"></script>
 <script>db.auth.onAuthStateChange((event,s)=>{const previousUserId=session?.user?.id;session=s;if(event==='PASSWORD_RECOVERY')invitationFlow=true;if(accountSetupSaving)return;if(event==='SIGNED_OUT'){sessionStorage.removeItem('ritmo-place134');restoredPlace134=false;invitationFlow=false;window.userSettings={};login();return}if(s&&previousUserId===s.user.id&&dataOwner131===s.user.id&&!needsAccountSetup()&&['SIGNED_IN','TOKEN_REFRESHED','USER_UPDATED'].includes(event))return;if(s&&previousUserId===s.user.id&&document.getElementById('setupSubmit')&&needsAccountSetup())return;if(s&&['INITIAL_SESSION','SIGNED_IN','PASSWORD_RECOVERY','USER_UPDATED'].includes(event))scheduleAccountStart()});scheduleAccountStart();
 </script>
 </body>
