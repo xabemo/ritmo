@@ -1,5 +1,5 @@
-const CACHE = "ritmo-v156-economia-compacta";
-const CORE = ["./", "./index.html", "./manifest.webmanifest", "./ritmo-features.js?v=138", "./ritmo-features.css?v=131", "./jspdf.umd.min.js", "./ritmo-admin.js?v=1321", "./ritmo-admin.css?v=13211", "./ritmo-social.js?v=135", "./ritmo-social.css?v=138", "./ritmo-routing.js?v=133", "./ritmo-projects.js?v=135", "./ritmo-community.js?v=137", "./ritmo-polish.js?v=156", "./ritmo-polish.css?v=156"];
+const CACHE = "ritmo-v157-cobros-coherentes";
+const CORE = ["./", "./index.html", "./manifest.webmanifest", "./ritmo-features.js?v=138", "./ritmo-features.css?v=131", "./jspdf.umd.min.js", "./ritmo-admin.js?v=1321", "./ritmo-admin.css?v=13211", "./ritmo-social.js?v=135", "./ritmo-social.css?v=138", "./ritmo-routing.js?v=133", "./ritmo-projects.js?v=135", "./ritmo-community.js?v=137", "./ritmo-polish.js?v=157", "./ritmo-polish.css?v=157"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(CORE)).then(() => self.skipWaiting()));
@@ -20,6 +20,7 @@ self.addEventListener("fetch", (event) => {
   }
   event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
 });
+
 
 
 

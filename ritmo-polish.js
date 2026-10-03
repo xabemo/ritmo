@@ -829,15 +829,42 @@ function economySignal156(generated,paid){
   return {percent,tone:'attention',label:'Prioriza los cobros pendientes',detail:`Solo se ha cobrado el ${percent}% de lo generado.`};
 }
 function economyFold156(title,meta,body,open=false){return `<details class="card economy-fold156" ${open?'open':''}><summary><span><b>${title}</b><small>${meta}</small></span><i aria-hidden="true">⌄</i></summary><div class="economy-fold-body156">${body}</div></details>`}
+/* Los filtros de fecha pertenecen al bolo, no al momento en que se recibió el dinero.
+   Esta función reparte cada cobro automático entre los bolos más antiguos y permite
+   mostrar el mismo estado, coherente, en el resumen y en la relación por bolo. */
+function economyPaymentScope157(rows){
+  const wanted=new Set(rows.map(g=>String(g.id))),byGig={},entries=[];
+  [...new Set(rows.map(g=>String(g.project_id)))].forEach(projectId=>{
+    const projectRows=gigs.filter(g=>g.status==='confirmado'&&String(g.project_id)===projectId)
+      .sort((a,b)=>String(a.event_date||'').localeCompare(String(b.event_date||''))||String(a.created_at||'').localeCompare(String(b.created_at||''))||String(a.id).localeCompare(String(b.id)));
+    const direct=payments.filter(p=>String(p.project_id||'')===projectId&&p.bolo_id);
+    projectRows.forEach(g=>{
+      const amount=direct.filter(p=>String(p.bolo_id)===String(g.id)).reduce((n,p)=>n+Math.max(0,Number(p.amount||0)),0);
+      byGig[String(g.id)]=amount;
+      if(wanted.has(String(g.id)))direct.filter(p=>String(p.bolo_id)===String(g.id)).forEach(p=>entries.push({...p,allocated:Math.min(Math.max(0,Number(p.amount||0)),Math.max(0,boloAmounts(g).total))}));
+    });
+    const automatic=payments.filter(p=>String(p.project_id||'')===projectId&&!p.bolo_id)
+      .sort((a,b)=>String(a.payment_date||'').localeCompare(String(b.payment_date||''))||String(a.created_at||'').localeCompare(String(b.created_at||''))||String(a.id).localeCompare(String(b.id)));
+    let paymentIndex=0,available=automatic.length?Math.max(0,Number(automatic[0].amount||0)):0;
+    projectRows.forEach(g=>{
+      let remaining=Math.max(0,boloAmounts(g).total-Math.min(boloAmounts(g).total,byGig[String(g.id)]||0));
+      while(remaining>0&&paymentIndex<automatic.length){
+        const used=Math.min(remaining,available); if(used>0){byGig[String(g.id)]=(byGig[String(g.id)]||0)+used;if(wanted.has(String(g.id)))entries.push({...automatic[paymentIndex],allocated:used});remaining-=used;available-=used;}
+        if(available<=0){paymentIndex++;available=paymentIndex<automatic.length?Math.max(0,Number(automatic[paymentIndex].amount||0)):0;}
+      }
+    });
+  });
+  return {byGig,entries};
+}
 function economyBase156(){
   const selected=window.economyProjectFilter||'',period=window.economyPeriod||'all',year=String(new Date().getFullYear()),matches=g=>!selected||String(g.project_id)===String(selected),periodMatch=d=>economyPeriodMatch131(d,period);
-  const scopedGigs=gigs.filter(g=>g.status==='confirmado'&&matches(g)&&periodMatch(g.event_date)),scopedPayments=payments.filter(p=>matches(p)&&periodMatch(p.payment_date));
-  const generated=scopedGigs.reduce((n,g)=>n+boloAmounts(g).total,0),paid=scopedPayments.reduce((n,p)=>n+Number(p.amount||0),0),owed=Math.max(0,generated-paid),signal=economySignal156(generated,paid);
+  const scopedGigs=gigs.filter(g=>g.status==='confirmado'&&matches(g)&&periodMatch(g.event_date)),paymentScope=economyPaymentScope157(scopedGigs),scopedPayments=paymentScope.entries;
+  const generated=scopedGigs.reduce((n,g)=>n+boloAmounts(g).total,0),paid=scopedGigs.reduce((n,g)=>n+Math.min(boloAmounts(g).total,paymentScope.byGig[String(g.id)]||0),0),owed=Math.max(0,generated-paid),signal=economySignal156(generated,paid);
   const options=projects.map(p=>`<option value="${p.id}" ${String(p.id)===String(selected)?'selected':''}>${esc(p.name)}</option>`).join('');
   const months=[...new Set(gigs.map(g=>String(g.event_date).slice(0,7)).filter(Boolean))].sort().reverse();
   const periodOptions=`<option value="all" ${period==='all'?'selected':''}>Todo el historial</option><option value="year" ${period==='year'?'selected':''}>${year}</option>${months.map(m=>`<option value="${m}" ${m===period?'selected':''}>${new Date(m+'-01T12:00:00').toLocaleDateString('es-ES',{month:'long',year:'numeric'})}</option>`).join('')}`;
-  const relation=`<div class="economy-table"><table><thead><tr><th>Bolo</th><th>Importe</th><th>Cobrado</th><th>Pend.</th></tr></thead><tbody>${scopedGigs.map(g=>{const a=boloAmounts(g),p=projectById(g.project_id),pg=Math.min(a.total,paymentTotalForBolo(g.id));return `<tr><td class="bolo-cell"><b>${esc(p.name)}</b><small>${esc(g.event_date)}${g.location?' · '+esc(g.location):''}</small></td><td>${money(a.total)}</td><td>${money(pg)}</td><td>${money(Math.max(0,a.total-pg))}</td></tr>`}).join('')}</tbody></table></div>`;
-  const paymentRows=scopedPayments.length?scopedPayments.map(p=>`<div class="payment-row payment-row156"><div class="payment-copy"><span>${esc(p.payment_date)} · ${esc(projectById(p.project_id).name||'Sin proyecto')}</span><small>${esc(p.method||'Sin método')}${p.bolo_id?' · Bolo asignado':' · Asignación automática'}</small></div><b class="payment-amount">${money(p.amount)}</b><div class="payment-actions"><button class="mini" onclick="modalAssignPayment('${p.id}')">✎</button><button class="mini danger" onclick="deletePayment('${p.id}')">×</button></div></div>`).join(''):'<p class="muted">No hay cobros registrados.</p>';
+  const relation=`<div class="economy-table"><table><thead><tr><th>Bolo</th><th>Importe</th><th>Cobrado</th><th>Pend.</th></tr></thead><tbody>${scopedGigs.map(g=>{const a=boloAmounts(g),p=projectById(g.project_id),pg=Math.min(a.total,paymentScope.byGig[String(g.id)]||0);return `<tr><td class="bolo-cell"><b>${esc(p.name)}</b><small>${esc(g.event_date)}${g.location?' · '+esc(g.location):''}</small></td><td>${money(a.total)}</td><td>${money(pg)}</td><td>${money(Math.max(0,a.total-pg))}</td></tr>`}).join('')}</tbody></table></div>`;
+  const paymentRows=scopedPayments.length?scopedPayments.map(p=>`<div class="payment-row payment-row156"><div class="payment-copy"><span>${esc(p.payment_date)} · ${esc(projectById(p.project_id).name||'Sin proyecto')}</span><small>${esc(p.method||'Sin método')}${p.bolo_id?' · Bolo asignado':' · Asignación automática'}</small></div><div class="payment-side157"><b class="payment-amount">${money(p.allocated)}</b><div class="payment-actions"><button class="mini" onclick="modalAssignPayment('${p.id}')">✎</button><button class="mini danger" onclick="deletePayment('${p.id}')">×</button></div></div></div>`).join(''):'<p class="muted">No hay cobros que correspondan a estos bolos.</p>';
   return `${pageTitle('Mi dinero')}<div class="toolbar"><select onchange="setEconomyProject(this.value)"><option value="">Todos los proyectos</option>${options}</select><select onchange="setEconomyPeriod(this.value)">${periodOptions}</select></div><section class="card economy-hero156 ${signal.tone}"><div class="economy-hero-head156"><div><small>RESUMEN ECONÓMICO</small><h2>${signal.label}</h2></div><strong>${signal.percent}%</strong></div><div class="economy-progress156" aria-label="${signal.percent}% cobrado"><i style="width:${signal.percent}%"></i></div><p>${signal.detail}</p><div class="economy-values156"><div><span>Generado</span><b>${money(generated)}</b></div><div><span>Cobrado</span><b>${money(paid)}</b></div><div><span>Pendiente</span><b>${money(owed)}</b></div></div></section>${economyFold156('Relación por bolo',`${scopedGigs.length} ${scopedGigs.length===1?'bolo confirmado':'bolos confirmados'}`,scopedGigs.length?relation:'<p class="muted">No hay bolos confirmados en este periodo.</p>',true)}${economyFold156('Cobros registrados',`${scopedPayments.length} ${scopedPayments.length===1?'cobro':'cobros'}`,paymentRows+'<button class="primary economy-register156" onclick="modalCobro()">＋ Registrar cobro</button>')}`;
 }
 economyBase=economyBase156;
@@ -861,5 +888,21 @@ function markActivityItemsSeen156(items){const normal=(items||[]).filter(item=>S
 openNotifications=function(){const feed=activityFeed(),wasRead=feed.map(notificationRead156);markNotificationsSeen();markActivityItemsSeen156(feed);document.body.insertAdjacentHTML('beforeend',`<div class="modal-bg" id="modal"><div class="modal activity-modal"><div class="modal-head"><div><h2>Notificaciones</h2><div class="muted">Las leídas se conservan durante 24 horas.</div></div><button onclick="closeModal();render()">✕</button></div>${feed.length?`<div class="activity-list">${feed.map((item,index)=>`<button class="activity-item ${wasRead[index]?'is-read142':''}" onclick="openActivity139('${esc(item[3])}')"><span class="activity-icon">${item[0]}</span><div><b>${item[1]}</b><span>${item[2]}</span>${wasRead[index]?'<em>Leída</em>':'<em>Nueva</em>'}</div><span aria-hidden="true">›</span></button>`).join('')}</div>`:`<div class="activity-empty">✓<br><br>No hay novedades recientes.</div>`}</div></div>`) };
 const todayReleaseBase156=todayCenter;
 todayCenter=function(gig,owed){const items=todayReleaseBase156(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead156(['✦','','','release156']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE156.version+'.','openRelease156()']);return items};
+
+const RITMO_RELEASE157={version:'1.57',title:'RITMO se ha actualizado',description:'Los cobros ya se calculan por bolo, aunque filtres por fecha.',changes:['El porcentaje de cobro suma todos los pagos que corresponden a los bolos mostrados.','La relación por bolo y el resumen económico muestran el mismo saldo.','Los cobros registrados ocupan menos espacio y sitúan el importe a la derecha.']};
+function releaseKey157(){return `ritmo-release-${RITMO_RELEASE157.version}-${session?.user?.id||'guest'}`}
+function notificationReadAt157(item){return String(item?.[3]||'')==='release157'?Number(localStorage.getItem(releaseKey157())||0):notificationReadAt156(item)}
+function notificationRead157(item){return notificationReadAt157(item)>0}
+function notificationAvailable157(item){const seen=notificationReadAt157(item);return !seen||Date.now()-seen<NOTICE_RETENTION142}
+function openRelease157(){localStorage.setItem(releaseKey157(),String(Date.now()));closeModal();render();socialModal133('Novedades de RITMO',`<div class="release-badge140">v${RITMO_RELEASE157.version}</div><h3>${RITMO_RELEASE157.title}</h3><p class="muted">${RITMO_RELEASE157.description}</p><ul class="release-list140">${RITMO_RELEASE157.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul><button class="primary" onclick="closeModal();render()">Entendido</button>`) }
+const activityBase157=activityFeed;
+activityFeed=function(){const items=activityBase157().filter(item=>String(item?.[3]||'')!=='release156');items.unshift(['✦',RITMO_RELEASE157.title,'Descubre qué ha cambiado en la versión '+RITMO_RELEASE157.version+'.','release157']);return items.filter(notificationAvailable157)};
+activityAlertCount=function(){return activityFeed().filter(item=>!notificationRead157(item)).length};
+const openActivityBase157=openActivity139;
+openActivity139=function(target){if(target==='release157'){openRelease157();return}openActivityBase157(target)};
+function markActivityItemsSeen157(items){const normal=(items||[]).filter(item=>String(item?.[3]||'')!=='release157');markActivityItemsSeen156(normal);if((items||[]).some(item=>String(item?.[3]||'')==='release157'))localStorage.setItem(releaseKey157(),String(Date.now()))}
+openNotifications=function(){const feed=activityFeed(),wasRead=feed.map(notificationRead157);markNotificationsSeen();markActivityItemsSeen157(feed);document.body.insertAdjacentHTML('beforeend',`<div class="modal-bg" id="modal"><div class="modal activity-modal"><div class="modal-head"><div><h2>Notificaciones</h2><div class="muted">Las leídas se conservan durante 24 horas.</div></div><button onclick="closeModal();render()">✕</button></div>${feed.length?`<div class="activity-list">${feed.map((item,index)=>`<button class="activity-item ${wasRead[index]?'is-read142':''}" onclick="openActivity139('${esc(item[3])}')"><span class="activity-icon">${item[0]}</span><div><b>${item[1]}</b><span>${item[2]}</span>${wasRead[index]?'<em>Leída</em>':'<em>Nueva</em>'}</div><span aria-hidden="true">›</span></button>`).join('')}</div>`:`<div class="activity-empty">✓<br><br>No hay novedades recientes.</div>`}</div></div>`) };
+const todayReleaseBase157=todayCenter;
+todayCenter=function(gig,owed){const items=todayReleaseBase157(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead157(['✦','','','release157']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE157.version+'.','openRelease157()']);return items};
 const homeReleaseBase156=home;
 home=function(){let html=homeReleaseBase156();if(!notificationRead156(['✦','','','release156']))html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
