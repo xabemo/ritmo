@@ -464,3 +464,83 @@ const todayReleaseBase150=todayCenter;
 todayCenter=function(gig,owed){const items=todayReleaseBase150(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead150(['✦','','','release150']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE150.version+'.','openRelease150()']);return items};
 const homeReleaseBase150=home;
 home=function(){let html=homeReleaseBase150();if(!notificationRead150(['✦','','','release150']))html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
+
+/* v1.51 — los cobros sin bolo se aplican en orden de antigüedad. */
+function paymentsByBolo151(projectId){
+  const projectKey=String(projectId||'');
+  const rows=gigs.filter(g=>g.status==='confirmado'&&String(g.project_id)===projectKey)
+    .sort((a,b)=>String(a.event_date||'').localeCompare(String(b.event_date||''))||String(a.created_at||'').localeCompare(String(b.created_at||''))||String(a.id).localeCompare(String(b.id)));
+  const applied={};
+  rows.forEach(g=>{
+    applied[String(g.id)]=payments.filter(p=>String(p.bolo_id||'')===String(g.id))
+      .reduce((sum,p)=>sum+Math.max(0,Number(p.amount||0)),0);
+  });
+  let automatic=payments.filter(p=>String(p.project_id||'')===projectKey&&!p.bolo_id)
+    .sort((a,b)=>String(a.payment_date||'').localeCompare(String(b.payment_date||''))||String(a.created_at||'').localeCompare(String(b.created_at||''))||String(a.id).localeCompare(String(b.id)))
+    .reduce((sum,p)=>sum+Math.max(0,Number(p.amount||0)),0);
+  rows.forEach(g=>{
+    if(automatic<=0)return;
+    const key=String(g.id),pending=Math.max(0,Number(boloAmounts(g).total||0)-Number(applied[key]||0));
+    const assigned=Math.min(pending,automatic);
+    applied[key]=Number(applied[key]||0)+assigned;
+    automatic-=assigned;
+  });
+  return applied;
+}
+paymentTotalForBolo=function(id){
+  const gig=gigs.find(g=>String(g.id)===String(id));
+  if(!gig||gig.status!=='confirmado')return 0;
+  return Number(paymentsByBolo151(gig.project_id)[String(gig.id)]||0);
+};
+paymentAllocationInfo=function(gig){
+  if(gig?.status!=='confirmado')return 'No contabiliza';
+  const hasExact=payments.some(p=>String(p.bolo_id||'')===String(gig.id));
+  const hasAutomatic=payments.some(p=>String(p.project_id||'')===String(gig.project_id)&&!p.bolo_id);
+  if(hasExact&&hasAutomatic)return 'Cobro asignado y saldo automático por antigüedad';
+  if(hasExact)return 'Cobro asignado al bolo';
+  if(hasAutomatic)return 'Cobro automático por antigüedad';
+  return 'Sin cobros registrados';
+};
+paymentBoloOptions=function(projectId,selectedId=''){
+  return gigs.filter(g=>g.status==='confirmado'&&String(g.project_id)===String(projectId||''))
+    .sort((a,b)=>String(a.event_date||'').localeCompare(String(b.event_date||''))||String(a.created_at||'').localeCompare(String(b.created_at||'')))
+    .map(g=>`<option value="${g.id}" ${String(g.id)===String(selectedId)?'selected':''}>${esc(g.event_date)} · ${esc(g.location||projectById(g.project_id).name)} · ${money(boloAmounts(g).total)}</option>`).join('');
+};
+const refreshPaymentBolosBase151=refreshPaymentBolos;
+refreshPaymentBolos=function(selectId,projectId,selectedId=''){
+  refreshPaymentBolosBase151(selectId,projectId,selectedId);
+  const selector=document.getElementById(selectId);
+  if(selector?.options?.[0])selector.options[0].textContent='Asignación automática: bolos más antiguos';
+};
+function updatePaymentAutomaticCopy151(){
+  const modal=document.getElementById('modal');
+  if(!modal)return;
+  modal.querySelectorAll('p.muted').forEach(node=>{
+    if(/proporcional|sin bolo/i.test(node.textContent))node.textContent='Si no eliges un bolo, RITMO aplicará el cobro al bolo confirmado más antiguo que todavía tenga saldo pendiente.';
+  });
+  modal.querySelectorAll('select').forEach(select=>{
+    if((select.id==='paybolo'||select.id==='assignbolo')&&select.options[0])select.options[0].textContent='Asignación automática: bolos más antiguos';
+  });
+}
+const modalCobroBase151=modalCobro;
+modalCobro=function(...args){modalCobroBase151(...args);updatePaymentAutomaticCopy151()};
+const modalAssignPaymentBase151=modalAssignPayment;
+modalAssignPayment=function(...args){modalAssignPaymentBase151(...args);updatePaymentAutomaticCopy151()};
+
+const RITMO_RELEASE151={version:'1.51',title:'RITMO se ha actualizado',description:'Los cobros automáticos ya se descuentan en orden, del bolo más antiguo al más reciente.',changes:['Un cobro sin bolo exacto cubre primero el saldo pendiente de la actuación confirmada más antigua.','Los cobros asignados expresamente a un bolo se mantienen en esa ficha.','La ayuda de registro de cobros explica la nueva asignación automática.']};
+function releaseKey151(){return `ritmo-release-${RITMO_RELEASE151.version}-${session?.user?.id||'guest'}`}
+function notificationReadAt151(item){return String(item?.[3]||'')==='release151'?Number(localStorage.getItem(releaseKey151())||0):notificationReadAt150(item)}
+function notificationRead151(item){return notificationReadAt151(item)>0}
+function notificationAvailable151(item){const seen=notificationReadAt151(item);return !seen||Date.now()-seen<NOTICE_RETENTION142}
+function openRelease151(){localStorage.setItem(releaseKey151(),String(Date.now()));closeModal();render();socialModal133('Novedades de RITMO',`<div class="release-badge140">v${RITMO_RELEASE151.version}</div><h3>${RITMO_RELEASE151.title}</h3><p class="muted">${RITMO_RELEASE151.description}</p><ul class="release-list140">${RITMO_RELEASE151.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul><button class="primary" onclick="closeModal();render()">Entendido</button>`)}
+const activityBase151=activityFeed;
+activityFeed=function(){const items=activityBase151().filter(item=>String(item?.[3]||'')!=='release150');items.unshift(['✦',RITMO_RELEASE151.title,'Descubre qué ha cambiado en la versión '+RITMO_RELEASE151.version+'.','release151']);return items.filter(notificationAvailable151)};
+activityAlertCount=function(){return activityFeed().filter(item=>!notificationRead151(item)).length};
+const openActivityBase151=openActivity139;
+openActivity139=function(target){if(target==='release151'){openRelease151();return}openActivityBase151(target)};
+function markActivityItemsSeen151(items){const normal=(items||[]).filter(item=>String(item?.[3]||'')!=='release151');markActivityItemsSeen150(normal);if((items||[]).some(item=>String(item?.[3]||'')==='release151'))localStorage.setItem(releaseKey151(),String(Date.now()))}
+openNotifications=function(){const feed=activityFeed(),wasRead=feed.map(notificationRead151);markNotificationsSeen();markActivityItemsSeen151(feed);document.body.insertAdjacentHTML('beforeend',`<div class="modal-bg" id="modal"><div class="modal activity-modal"><div class="modal-head"><div><h2>Notificaciones</h2><div class="muted">Las leídas se conservan durante 24 horas.</div></div><button onclick="closeModal();render()">✕</button></div>${feed.length?`<div class="activity-list">${feed.map((item,index)=>`<button class="activity-item ${wasRead[index]?'is-read142':''}" onclick="openActivity139('${esc(item[3])}')"><span class="activity-icon">${item[0]}</span><div><b>${item[1]}</b><span>${item[2]}</span>${wasRead[index]?'<em>Leída</em>':'<em>Nueva</em>'}</div><span aria-hidden="true">›</span></button>`).join('')}</div>`:`<div class="activity-empty">✓<br><br>No hay novedades recientes.</div>`}</div></div>`) };
+const todayReleaseBase151=todayCenter;
+todayCenter=function(gig,owed){const items=todayReleaseBase151(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead151(['✦','','','release151']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE151.version+'.','openRelease151()']);return items};
+const homeReleaseBase151=home;
+home=function(){let html=homeReleaseBase151();if(!notificationRead151(['✦','','','release151']))html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
