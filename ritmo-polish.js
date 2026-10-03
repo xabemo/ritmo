@@ -818,3 +818,48 @@ const todayReleaseBase155=todayCenter;
 todayCenter=function(gig,owed){const items=todayReleaseBase155(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead155(['✦','','','release155']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE155.version+'.','openRelease155()']);return items};
 const homeReleaseBase155=home;
 home=function(){let html=homeReleaseBase155();if(!notificationRead155(['✦','','','release155']))html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
+
+/* v1.56 — Mi dinero: un resumen útil y listas plegables. */
+function economySignal156(generated,paid){
+  if(!generated)return {percent:0,tone:'neutral',label:'Sin importes en este periodo',detail:'Añade bolos confirmados para ver tu avance de cobro.'};
+  const percent=Math.min(100,Math.round(paid/generated*100));
+  if(percent>=100)return {percent,tone:'good',label:'Todo cobrado',detail:'No queda saldo pendiente en este periodo.'};
+  if(percent>=75)return {percent,tone:'good',label:'Buen ritmo de cobro',detail:`Has cobrado ${percent}% de lo generado.`};
+  if(percent>=40)return {percent,tone:'watch',label:'Cobros en seguimiento',detail:`Has cobrado ${percent}% de lo generado.`};
+  return {percent,tone:'attention',label:'Prioriza los cobros pendientes',detail:`Solo se ha cobrado el ${percent}% de lo generado.`};
+}
+function economyFold156(title,meta,body,open=false){return `<details class="card economy-fold156" ${open?'open':''}><summary><span><b>${title}</b><small>${meta}</small></span><i aria-hidden="true">⌄</i></summary><div class="economy-fold-body156">${body}</div></details>`}
+function economyBase156(){
+  const selected=window.economyProjectFilter||'',period=window.economyPeriod||'all',year=String(new Date().getFullYear()),matches=g=>!selected||String(g.project_id)===String(selected),periodMatch=d=>economyPeriodMatch131(d,period);
+  const scopedGigs=gigs.filter(g=>g.status==='confirmado'&&matches(g)&&periodMatch(g.event_date)),scopedPayments=payments.filter(p=>matches(p)&&periodMatch(p.payment_date));
+  const generated=scopedGigs.reduce((n,g)=>n+boloAmounts(g).total,0),paid=scopedPayments.reduce((n,p)=>n+Number(p.amount||0),0),owed=Math.max(0,generated-paid),signal=economySignal156(generated,paid);
+  const options=projects.map(p=>`<option value="${p.id}" ${String(p.id)===String(selected)?'selected':''}>${esc(p.name)}</option>`).join('');
+  const months=[...new Set(gigs.map(g=>String(g.event_date).slice(0,7)).filter(Boolean))].sort().reverse();
+  const periodOptions=`<option value="all" ${period==='all'?'selected':''}>Todo el historial</option><option value="year" ${period==='year'?'selected':''}>${year}</option>${months.map(m=>`<option value="${m}" ${m===period?'selected':''}>${new Date(m+'-01T12:00:00').toLocaleDateString('es-ES',{month:'long',year:'numeric'})}</option>`).join('')}`;
+  const relation=`<div class="economy-table"><table><thead><tr><th>Bolo</th><th>Importe</th><th>Cobrado</th><th>Pend.</th></tr></thead><tbody>${scopedGigs.map(g=>{const a=boloAmounts(g),p=projectById(g.project_id),pg=Math.min(a.total,paymentTotalForBolo(g.id));return `<tr><td class="bolo-cell"><b>${esc(p.name)}</b><small>${esc(g.event_date)}${g.location?' · '+esc(g.location):''}</small></td><td>${money(a.total)}</td><td>${money(pg)}</td><td>${money(Math.max(0,a.total-pg))}</td></tr>`}).join('')}</tbody></table></div>`;
+  const paymentRows=scopedPayments.length?scopedPayments.map(p=>`<div class="payment-row payment-row156"><div class="payment-copy"><span>${esc(p.payment_date)} · ${esc(projectById(p.project_id).name||'Sin proyecto')}</span><small>${esc(p.method||'Sin método')}${p.bolo_id?' · Bolo asignado':' · Asignación automática'}</small></div><b class="payment-amount">${money(p.amount)}</b><div class="payment-actions"><button class="mini" onclick="modalAssignPayment('${p.id}')">✎</button><button class="mini danger" onclick="deletePayment('${p.id}')">×</button></div></div>`).join(''):'<p class="muted">No hay cobros registrados.</p>';
+  return `${pageTitle('Mi dinero')}<div class="toolbar"><select onchange="setEconomyProject(this.value)"><option value="">Todos los proyectos</option>${options}</select><select onchange="setEconomyPeriod(this.value)">${periodOptions}</select></div><section class="card economy-hero156 ${signal.tone}"><div class="economy-hero-head156"><div><small>RESUMEN ECONÓMICO</small><h2>${signal.label}</h2></div><strong>${signal.percent}%</strong></div><div class="economy-progress156" aria-label="${signal.percent}% cobrado"><i style="width:${signal.percent}%"></i></div><p>${signal.detail}</p><div class="economy-values156"><div><span>Generado</span><b>${money(generated)}</b></div><div><span>Cobrado</span><b>${money(paid)}</b></div><div><span>Pendiente</span><b>${money(owed)}</b></div></div></section>${economyFold156('Relación por bolo',`${scopedGigs.length} ${scopedGigs.length===1?'bolo confirmado':'bolos confirmados'}`,scopedGigs.length?relation:'<p class="muted">No hay bolos confirmados en este periodo.</p>',true)}${economyFold156('Cobros registrados',`${scopedPayments.length} ${scopedPayments.length===1?'cobro':'cobros'}`,paymentRows+'<button class="primary economy-register156" onclick="modalCobro()">＋ Registrar cobro</button>')}`;
+}
+economyBase=economyBase156;
+economy=function(){
+  const base=economyBase156(),aging=debtAging(window.economyProjectFilter||''),total=aging.fresh+aging.mid+aging.old;
+  return base+economyFold156('Pendiente por antigüedad',total?`Total pendiente ${money(total)}`:'Sin deuda pendiente',`<div class="line"><span>Menos de 30 días</span><b>${money(aging.fresh)}</b></div><div class="line"><span>De 30 a 60 días</span><b>${money(aging.mid)}</b></div><div class="line total"><span>Más de 60 días</span><b>${money(aging.old)}</b></div><button class="secondary economy-export156" onclick="printEconomyReport()">Exportar informe PDF</button>`);
+};
+
+const RITMO_RELEASE156={version:'1.56',title:'RITMO se ha actualizado',description:'Mi dinero ahora muestra el estado de tus cobros de forma mucho más clara.',changes:['Generado, cobrado y pendiente se agrupan en una sola tarjeta de resumen.','El indicador visual muestra el porcentaje cobrado y el estado de seguimiento.','La relación por bolo y los cobros registrados son compactos y se pueden plegar.']};
+function releaseKey156(){return `ritmo-release-${RITMO_RELEASE156.version}-${session?.user?.id||'guest'}`}
+function notificationReadAt156(item){return String(item?.[3]||'')==='release156'?Number(localStorage.getItem(releaseKey156())||0):notificationReadAt155(item)}
+function notificationRead156(item){return notificationReadAt156(item)>0}
+function notificationAvailable156(item){const seen=notificationReadAt156(item);return !seen||Date.now()-seen<NOTICE_RETENTION142}
+function openRelease156(){localStorage.setItem(releaseKey156(),String(Date.now()));closeModal();render();socialModal133('Novedades de RITMO',`<div class="release-badge140">v${RITMO_RELEASE156.version}</div><h3>${RITMO_RELEASE156.title}</h3><p class="muted">${RITMO_RELEASE156.description}</p><ul class="release-list140">${RITMO_RELEASE156.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul><button class="primary" onclick="closeModal();render()">Entendido</button>`) }
+const activityBase156=activityFeed;
+activityFeed=function(){const items=activityBase156().filter(item=>String(item?.[3]||'')!=='release155');items.unshift(['✦',RITMO_RELEASE156.title,'Descubre qué ha cambiado en la versión '+RITMO_RELEASE156.version+'.','release156']);return items.filter(notificationAvailable156)};
+activityAlertCount=function(){return activityFeed().filter(item=>!notificationRead156(item)).length};
+const openActivityBase156=openActivity139;
+openActivity139=function(target){if(target==='release156'){openRelease156();return}openActivityBase156(target)};
+function markActivityItemsSeen156(items){const normal=(items||[]).filter(item=>String(item?.[3]||'')!=='release156');markActivityItemsSeen155(normal);if((items||[]).some(item=>String(item?.[3]||'')==='release156'))localStorage.setItem(releaseKey156(),String(Date.now()))}
+openNotifications=function(){const feed=activityFeed(),wasRead=feed.map(notificationRead156);markNotificationsSeen();markActivityItemsSeen156(feed);document.body.insertAdjacentHTML('beforeend',`<div class="modal-bg" id="modal"><div class="modal activity-modal"><div class="modal-head"><div><h2>Notificaciones</h2><div class="muted">Las leídas se conservan durante 24 horas.</div></div><button onclick="closeModal();render()">✕</button></div>${feed.length?`<div class="activity-list">${feed.map((item,index)=>`<button class="activity-item ${wasRead[index]?'is-read142':''}" onclick="openActivity139('${esc(item[3])}')"><span class="activity-icon">${item[0]}</span><div><b>${item[1]}</b><span>${item[2]}</span>${wasRead[index]?'<em>Leída</em>':'<em>Nueva</em>'}</div><span aria-hidden="true">›</span></button>`).join('')}</div>`:`<div class="activity-empty">✓<br><br>No hay novedades recientes.</div>`}</div></div>`) };
+const todayReleaseBase156=todayCenter;
+todayCenter=function(gig,owed){const items=todayReleaseBase156(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead156(['✦','','','release156']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE156.version+'.','openRelease156()']);return items};
+const homeReleaseBase156=home;
+home=function(){let html=homeReleaseBase156();if(!notificationRead156(['✦','','','release156']))html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
