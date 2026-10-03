@@ -46,3 +46,6 @@
 
 /* RITMO 1.47: la tarjeta de agenda conserva exactamente la caja de una estadística. */
 .home-calendar-stat146{box-sizing:border-box;min-width:0;margin:0;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--card);-webkit-appearance:none;appearance:none}
+
+/* RITMO 1.48: desglose inmediato del desplazamiento. */
+.travel-calculation148{margin:-2px 0 12px;padding:10px 12px;border:1px solid #d8e5d7;border-radius:12px;background:#f3f8f1;color:#234f42;font-size:12px;font-weight:700;line-height:1.45}.travel-calculation148.is-warning{border-color:#eadab1;background:#fffaf0;color:#725b23}

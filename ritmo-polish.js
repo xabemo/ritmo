@@ -296,3 +296,111 @@ openActivity139=function(target){if(target==='release147'){openRelease147();retu
 openNotifications=function(){const feed=activityFeed(),wasRead=feed.map(notificationRead147);markNotificationsSeen();markActivityItemsSeen147(feed);document.body.insertAdjacentHTML('beforeend',`<div class="modal-bg" id="modal"><div class="modal activity-modal"><div class="modal-head"><div><h2>Notificaciones</h2><div class="muted">Las leídas se conservan durante 24 horas.</div></div><button onclick="closeModal();render()">✕</button></div>${feed.length?`<div class="activity-list">${feed.map((item,index)=>`<button class="activity-item ${wasRead[index]?'is-read142':''}" onclick="openActivity139('${esc(item[3])}')"><span class="activity-icon">${item[0]}</span><div><b>${item[1]}</b><span>${item[2]}</span>${wasRead[index]?'<em>Leída</em>':'<em>Nueva</em>'}</div><span aria-hidden="true">›</span></button>`).join('')}</div>`:`<div class="activity-empty">✓<br><br>No hay novedades recientes.</div>`}</div></div>`) };
 const todayReleaseBase147=todayCenter;
 todayCenter=function(gig,owed){const items=todayReleaseBase147(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead147(['✦','','','release147']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE147.version+'.','openRelease147()']);return items};
+
+/* RITMO 1.48: el desplazamiento se calcula y se explica antes de guardar. */
+const activeKmPriceBase148=activeKmPrice;
+activeKmPrice=function(date,projectId=''){
+  const day=String(date||localDate()).slice(0,10);
+  const valid=(kmPrices||[]).filter(row=>{
+    const rate=Number(row?.price_per_km);
+    const from=String(row?.effective_from||'').slice(0,10);
+    return Number.isFinite(rate)&&from&&from<=day;
+  }).sort((a,b)=>String(b.effective_from||'').localeCompare(String(a.effective_from||''))||String(b.created_at||'').localeCompare(String(a.created_at||'')));
+  const selectedProject=String(projectId||'');
+  const specific=selectedProject?valid.find(row=>String(row.project_id||'')===selectedProject):null;
+  const general=valid.find(row=>!row.project_id);
+  return Number((specific||general)?.price_per_km||0);
+};
+function updateTravelCalculation148(){
+  const box=document.getElementById('travelCalculation148');
+  if(!box)return;
+  const kilometers=Math.max(0,Number(document.getElementById('bkm')?.value||0));
+  const cache=Math.max(0,Number(document.getElementById('bprice')?.value||0));
+  const charging=document.getElementById('btravel')?.value==='true';
+  const rate=activeKmPrice(document.getElementById('bdate')?.value,document.getElementById('bproject')?.value);
+  const travel=charging?kilometers*rate:0;
+  box.classList.toggle('is-warning',charging&&kilometers>0&&rate<=0);
+  if(!charging){box.textContent='El desplazamiento no se sumará al total.';return}
+  if(kilometers>0&&rate<=0){box.textContent='No hay una tarifa por km vigente para este proyecto y esta fecha. Configúrala en Ajustes → Tarifas por km.';return}
+  if(!kilometers){box.textContent=`Tarifa vigente: ${money(rate)}/km · Añade o calcula los kilómetros para ver el total.`;return}
+  box.textContent=`Tarifa vigente: ${money(rate)}/km · Desplazamiento: ${money(travel)} · Total estimado: ${money(cache+travel)}`;
+}
+const modalBoloBase148=modalBolo;
+modalBolo=function(id=''){
+  modalBoloBase148(id);
+  const travel=document.getElementById('btravel');
+  if(travel){
+    if(id)travel.dataset.userChoice148='1';
+    travel.addEventListener('change',()=>{travel.dataset.userChoice148='1';updateTravelCalculation148()});
+  }
+  ['bproject','bdate','bprice','bkm'].forEach(field=>document.getElementById(field)?.addEventListener('input',updateTravelCalculation148));
+  document.getElementById('bproject')?.addEventListener('change',updateTravelCalculation148);
+  document.getElementById('bdate')?.addEventListener('change',updateTravelCalculation148);
+  updateTravelCalculation148();
+};
+const calculateRouteFromFormBase148=calculateRouteFromForm;
+calculateRouteFromForm=async function(){
+  await calculateRouteFromFormBase148();
+  const kilometers=Number(document.getElementById('bkm')?.value||0),travel=document.getElementById('btravel');
+  if(kilometers>0&&travel&&!travel.dataset.userChoice148)travel.value='true';
+  updateTravelCalculation148();
+};
+gigRow=function(g){
+  const p=projectById(g.project_id),a=boloAmounts(g);
+  const amountLabel=g.status==='reserva'?'Previsto':g.status==='cancelado'?'Cancelado':'Total';
+  const displayTotal=g.status==='cancelado'?0:a.total;
+  return `<button class="row-card project-rail1321" style="--project-color:${projectRailColor1321(g)}" onclick="goGig('${g.id}')"><span class="grow"><b>${esc(p.name)}</b><small>${esc(g.event_date)} · ${esc(g.location||'Ubicación pendiente')}</small><span class="bolo-money"><span>${amountLabel}</span><b>${money(displayTotal)}</b></span>${boloReadinessMarkup(g)}</span><span class="status ${boloStatusClass(g.status)}">${esc(boloStatusLabel(g.status))}</span><span class="arrow">›</span></button>`
+};
+
+/* RITMO 1.48: aviso de la mejora del cálculo de desplazamiento. */
+const RITMO_RELEASE148={version:'1.48',title:'RITMO se ha actualizado',description:'El desplazamiento se calcula de forma más clara al crear o editar un bolo.',changes:['Al calcular una ruta nueva, el desplazamiento se activa automáticamente salvo que hayas elegido lo contrario.','El formulario muestra la tarifa vigente, el importe de desplazamiento y el total estimado antes de guardar.','Mis bolos muestra un único total, que suma caché y desplazamiento, sin el indicador de kilómetros.']};
+function releaseKey148(){return `ritmo-release-${RITMO_RELEASE148.version}-${session?.user?.id||'guest'}`}
+function notificationReadAt148(item){return String(item?.[3]||'')==='release148'?Number(localStorage.getItem(releaseKey148())||0):notificationReadAt147(item)}
+function notificationRead148(item){return notificationReadAt148(item)>0}
+function notificationAvailable148(item){const seen=notificationReadAt148(item);return !seen||Date.now()-seen<NOTICE_RETENTION142}
+function openRelease148(){localStorage.setItem(releaseKey148(),String(Date.now()));closeModal();render();socialModal133('Novedades de RITMO',`<div class="release-badge140">v${RITMO_RELEASE148.version}</div><h3>${RITMO_RELEASE148.title}</h3><p class="muted">${RITMO_RELEASE148.description}</p><ul class="release-list140">${RITMO_RELEASE148.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul><button class="primary" onclick="closeModal();render()">Entendido</button>`)}
+function markActivityItemsSeen148(items){const normal=(items||[]).filter(item=>String(item?.[3]||'')!=='release148');markActivityItemsSeen147(normal);if((items||[]).some(item=>String(item?.[3]||'')==='release148'))localStorage.setItem(releaseKey148(),String(Date.now()))}
+activityFeed=function(){const items=activityPersistBase141().filter(item=>!String(item?.[3]||'').startsWith('release'));items.unshift(['✦',RITMO_RELEASE148.title,'Descubre qué ha cambiado en la versión '+RITMO_RELEASE148.version+'.','release148']);return items.filter(notificationAvailable148)};
+activityAlertCount=function(){return activityFeed().filter(item=>!notificationRead148(item)).length};
+openActivity139=function(target){if(target==='release148'){openRelease148();return}if(target.startsWith('friends:'))goFriends136(target.slice(8));else go(target)};
+openNotifications=function(){const feed=activityFeed(),wasRead=feed.map(notificationRead148);markNotificationsSeen();markActivityItemsSeen148(feed);document.body.insertAdjacentHTML('beforeend',`<div class="modal-bg" id="modal"><div class="modal activity-modal"><div class="modal-head"><div><h2>Notificaciones</h2><div class="muted">Las leídas se conservan durante 24 horas.</div></div><button onclick="closeModal();render()">✕</button></div>${feed.length?`<div class="activity-list">${feed.map((item,index)=>`<button class="activity-item ${wasRead[index]?'is-read142':''}" onclick="openActivity139('${esc(item[3])}')"><span class="activity-icon">${item[0]}</span><div><b>${item[1]}</b><span>${item[2]}</span>${wasRead[index]?'<em>Leída</em>':'<em>Nueva</em>'}</div><span aria-hidden="true">›</span></button>`).join('')}</div>`:`<div class="activity-empty">✓<br><br>No hay novedades recientes.</div>`}</div></div>`) };
+const todayReleaseBase148=todayCenter;
+todayCenter=function(gig,owed){const items=todayReleaseBase148(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead148(['✦','','','release148']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE148.version+'.','openRelease148()']);return items};
+const homeReleaseBase148=home;
+home=function(){let html=homeReleaseBase148();if(!notificationRead148(['✦','','','release148']))html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
+
+/* RITMO 1.49: avisos de bolos que abren su ficha y frases que cambian cada hora. */
+const ritmoPhrases149=[
+  'Hoy vas a tu… RITMO.','Recuerda: cada uno necesita su… RITMO.','Con calma, con música y a tu… RITMO.','Organiza el día. Disfruta el RITMO.','Si hay bolo, hay RITMO.','Todo entra mejor cuando vas a tu… RITMO.','Que el día suene a tu… RITMO.','Que el RITMO no pare, no pare, no…','Café, cables y a tu… RITMO.','Hoy el caos va con metrónomo.','Si llegas a tiempo, que no se note.','Un bolo a la vez. Y si hay dos, respira.','Afinado, organizado y con batería.','La prueba de sonido también cuenta como cardio.','No es prisa: es tempo allegro.','Todo bajo control. Más o menos.','La furgoneta sabe el camino. Tú lleva el RITMO.','Tu agenda tiene más compases que excusas.','Que no falte nada… salvo tiempo para montar.','Hoy toca. Y no solo música.','Respira: aún queda margen. Probablemente.','Un cable menos perdido, un día más feliz.','Llegar puntual también es una forma de arte.','Tu mejor solo empieza por saber dónde aparcar.','El bolo se disfruta más cuando el cable está en la maleta.','Primero el café. Después, el sonido.','Si el escenario tiembla, que sea por los graves.','El setlist está listo. Ahora que aparezca.','La puntualidad es rock and roll con agenda.','Hoy no hay caos: hay improvisación planificada.','El metrónomo aprueba esta planificación.','Un buen viaje empieza con una ruta y acaba con aplausos.','Que la música te pille preparado.','Menos prisas, más compás.','Todo bolo merece una entrada a tiempo.','Hoy toca dar la nota. La buena.','El volumen alto; los imprevistos, bajitos.','Cables recogidos, mente despejada.','Con una buena ruta, hasta el tráfico suena mejor.','Tu día tiene banda sonora.','La mejor afinación empieza en la agenda.','Que nunca falte música ni una regleta.','Si hay imprevisto, ponle compás.','Hoy el backstage también va a tu RITMO.','Ensayar es recordar que luego saldrá mejor.','Los aplausos se preparan desde aquí.','Sin prisa, pero sin perder el tempo.','Un bolo organizado suena distinto.','La carretera también forma parte del concierto.','Tú marca el compás; RITMO guarda el resto.','Que el único susto sea el solo de guitarra.','Hoy se monta, se toca y se celebra.','Una fecha clara vale por dos ensayos.','El escenario te espera. Ve a tu RITMO.','La agenda no desafina.','Que cada kilómetro tenga su canción.','Aquí los bolos no se escapan del calendario.','Más música, menos buscar mensajes antiguos.','El plan está afinado. Dale al play.'
+];
+dailySlogan140=function(){const hour=Math.floor(Date.now()/3600000);return ritmoPhrases149[Math.abs(hour)%ritmoPhrases149.length]};
+let sloganHour149=Math.floor(Date.now()/3600000);
+setInterval(()=>{const hour=Math.floor(Date.now()/3600000);if(hour!==sloganHour149){sloganHour149=hour;if(view==='home'&&!document.getElementById('modal'))render()}},60000);
+function directGigActivity149(){
+  const since=new Date(activityLastSeen()).getTime();
+  const seen=notificationSeenMap141();
+  const isVisible=item=>!seen[notificationSignature141(item)];
+  const created=gigs.filter(g=>new Date(g.created_at||0).getTime()>since).map(g=>['♫','Bolo creado',`${projectById(g.project_id).name} · ${g.event_date}${g.location?' · '+g.location:''}`,`gig:${g.id}`]);
+  const changed=gigs.filter(g=>{const createdAt=new Date(g.created_at||0).getTime(),updatedAt=new Date(g.updated_at||0).getTime();return createdAt<=since&&updatedAt>since&&updatedAt>createdAt+1000}).map(g=>['↻','Bolo actualizado',`${projectById(g.project_id).name} · ${g.event_date}${g.location?' · '+g.location:''}`,`gig:${g.id}`]);
+  return [...created,...changed].filter(isVisible);
+}
+const RITMO_RELEASE149={version:'1.49',title:'RITMO se ha actualizado',description:'Las notificaciones de bolos ya abren la ficha correcta y las frases de Inicio se renuevan cada hora.',changes:['Cada aviso de bolo creado o actualizado abre directamente la ficha de esa actuación.','Inicio incorpora más frases de RITMO y cambia una por hora.','La colección combina recordatorios musicales, humor de carretera y guiños de escenario.']};
+function releaseKey149(){return `ritmo-release-${RITMO_RELEASE149.version}-${session?.user?.id||'guest'}`}
+function notificationReadAt149(item){return String(item?.[3]||'')==='release149'?Number(localStorage.getItem(releaseKey149())||0):notificationReadAt148(item)}
+function notificationRead149(item){return notificationReadAt149(item)>0}
+function notificationAvailable149(item){const seen=notificationReadAt149(item);return !seen||Date.now()-seen<NOTICE_RETENTION142}
+function openRelease149(){localStorage.setItem(releaseKey149(),String(Date.now()));closeModal();render();socialModal133('Novedades de RITMO',`<div class="release-badge140">v${RITMO_RELEASE149.version}</div><h3>${RITMO_RELEASE149.title}</h3><p class="muted">${RITMO_RELEASE149.description}</p><ul class="release-list140">${RITMO_RELEASE149.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul><button class="primary" onclick="closeModal();render()">Entendido</button>`)}
+function markActivityItemsSeen149(items){const normal=(items||[]).filter(item=>String(item?.[3]||'')!=='release149');markActivityItemsSeen148(normal);if((items||[]).some(item=>String(item?.[3]||'')==='release149'))localStorage.setItem(releaseKey149(),String(Date.now()))}
+activityFeed=function(){
+  const existing=activityPersistBase141().filter(item=>{const target=String(item?.[3]||'');return !target.startsWith('release')&&target!=='bolos'});
+  const items=[...directGigActivity149(),...existing];
+  items.unshift(['✦',RITMO_RELEASE149.title,'Descubre qué ha cambiado en la versión '+RITMO_RELEASE149.version+'.','release149']);
+  return items.filter(notificationAvailable149);
+};
+activityAlertCount=function(){return activityFeed().filter(item=>!notificationRead149(item)).length};
+openActivity139=function(target){if(target==='release149'){openRelease149();return}if(target.startsWith('gig:')){closeModal();goGig(target.slice(4));return}if(target.startsWith('friends:'))goFriends136(target.slice(8));else go(target)};
+openNotifications=function(){const feed=activityFeed(),wasRead=feed.map(notificationRead149);markNotificationsSeen();markActivityItemsSeen149(feed);document.body.insertAdjacentHTML('beforeend',`<div class="modal-bg" id="modal"><div class="modal activity-modal"><div class="modal-head"><div><h2>Notificaciones</h2><div class="muted">Las leídas se conservan durante 24 horas.</div></div><button onclick="closeModal();render()">✕</button></div>${feed.length?`<div class="activity-list">${feed.map((item,index)=>`<button class="activity-item ${wasRead[index]?'is-read142':''}" onclick="openActivity139('${esc(item[3])}')"><span class="activity-icon">${item[0]}</span><div><b>${item[1]}</b><span>${item[2]}</span>${wasRead[index]?'<em>Leída</em>':'<em>Nueva</em>'}</div><span aria-hidden="true">›</span></button>`).join('')}</div>`:`<div class="activity-empty">✓<br><br>No hay novedades recientes.</div>`}</div></div>`) };
+const todayReleaseBase149=todayCenter;
+todayCenter=function(gig,owed){const items=todayReleaseBase149(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead149(['✦','','','release149']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE149.version+'.','openRelease149()']);return items};
+const homeReleaseBase149=home;
+home=function(){let html=homeReleaseBase149();if(!notificationRead149(['✦','','','release149']))html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
