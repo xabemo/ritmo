@@ -124,6 +124,57 @@ function notificationAvailable142(item){const seen=notificationReadAt142(item);r
 function markActivityItemsSeen142(items){if(!session?.user?.id)return;const seen=notificationSeenMap141(),now=Date.now();for(const item of items||[]){const target=String(item?.[3]||'');if(target==='release142')localStorage.setItem(releaseKey142(),String(now));else if(target==='release140')localStorage.setItem(releaseKey140(),'seen');else if(target==='release141')localStorage.setItem(releaseKey141(),'seen');else seen[notificationSignature141(item)]=now}const recent=Object.entries(seen).filter(([,at])=>Number(at)>now-NOTICE_RETENTION142).slice(-250);localStorage.setItem(notificationSeenKey141(),JSON.stringify(Object.fromEntries(recent)))}
 const RITMO_RELEASE142={version:'1.42',title:'Programa y avisos mejorados',description:'Adjunta el programa desde la ficha, encuadra tu avatar y consulta los avisos leídos durante 24 horas.',changes:['El botón Adjuntar programa abre directamente la cámara, galería o selector de PDF.','La foto de perfil permite ampliar y reencuadrar antes de guardarla.','Las notificaciones leídas quedan consultables durante 24 horas y se distinguen visualmente de las nuevas.']};
 function releaseKey142(){return `ritmo-release-${RITMO_RELEASE142.version}-${session?.user?.id||'guest'}`}
+
+/* RITMO 1.43: encuadre táctil del avatar mediante arrastre y gesto de pellizco. */
+let avatarCrop143=null;
+const profileModalBase143=modalProfile;
+modalProfile=function(){
+  profileModalBase143();
+  const input=document.getElementById('avatarFile139'),preview=document.getElementById('avatarPreview140'),oldEditor=document.getElementById('avatarCropEditor142');
+  if(!input||!preview||document.getElementById('avatarCropTouch143'))return;
+  const editor=document.createElement('div');
+  editor.id='avatarCropTouch143';editor.className='avatar-crop-touch143';
+  editor.innerHTML='<div id="avatarCropStage143" class="avatar-crop-stage143" aria-label="Encuadre de foto"><div class="avatar-crop-guide143"></div></div><p>Arrastra la foto para moverla. Usa dos dedos para ampliar o reducir.</p>';
+  oldEditor?.parentNode?.insertBefore(editor,oldEditor);
+  editor.querySelector('#avatarCropStage143').insertBefore(preview,editor.querySelector('.avatar-crop-guide143'));
+  oldEditor?.remove();
+  input.setAttribute('onchange','prepareAvatarTouch143(this)');
+  bindAvatarCropTouch143(editor.querySelector('#avatarCropStage143'));
+};
+function prepareAvatarTouch143(input){
+  const file=input?.files?.[0],preview=document.getElementById('avatarPreview140'),stage=document.getElementById('avatarCropStage143');
+  if(!file||!preview||!stage)return;
+  if(avatarCrop143?.url)URL.revokeObjectURL(avatarCrop143.url);
+  avatarCrop143={file,url:URL.createObjectURL(file),zoom:1,x:0,y:0,width:0,height:0};
+  preview.onload=()=>{avatarCrop143.width=preview.naturalWidth;avatarCrop143.height=preview.naturalHeight;updateAvatarTouch143()};
+  preview.src=avatarCrop143.url;preview.classList.remove('empty');
+}
+function avatarCropLimits143(){
+  const stage=document.getElementById('avatarCropStage143'),s=avatarCrop143;
+  if(!stage||!s?.width||!s?.height)return {x:0,y:0};
+  const side=stage.clientWidth||208,base=Math.max(side/s.width,side/s.height),scaledW=s.width*base*s.zoom,scaledH=s.height*base*s.zoom;
+  return {x:Math.max(0,(scaledW-side)/2),y:Math.max(0,(scaledH-side)/2)};
+}
+function updateAvatarTouch143(){
+  const preview=document.getElementById('avatarPreview140'),s=avatarCrop143;
+  if(!preview||!s)return;
+  const limit=avatarCropLimits143();
+  s.x=Math.max(-limit.x,Math.min(limit.x,s.x));s.y=Math.max(-limit.y,Math.min(limit.y,s.y));
+  preview.style.transform=`translate(${s.x}px,${s.y}px) scale(${s.zoom})`;
+}
+function bindAvatarCropTouch143(stage){
+  if(!stage||stage.dataset.bound)return;stage.dataset.bound='1';
+  const pointers=new Map();let start=null;
+  stage.addEventListener('pointerdown',e=>{if(!avatarCrop143)return;stage.setPointerCapture?.(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===1)start={type:'move',x:e.clientX,y:e.clientY,cropX:avatarCrop143.x,cropY:avatarCrop143.y};else if(pointers.size===2){const p=[...pointers.values()];start={type:'pinch',distance:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y),zoom:avatarCrop143.zoom}}});
+  stage.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId)||!avatarCrop143)return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(!start)return;if(pointers.size===1&&start.type==='move'){avatarCrop143.x=start.cropX+(e.clientX-start.x);avatarCrop143.y=start.cropY+(e.clientY-start.y)}else if(pointers.size===2&&start.type==='pinch'){const p=[...pointers.values()],distance=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);avatarCrop143.zoom=Math.max(1,Math.min(4,start.zoom*(distance/start.distance)))}updateAvatarTouch143()});
+  const end=e=>{pointers.delete(e.pointerId);if(pointers.size===1){const p=[...pointers.values()][0];start={type:'move',x:p.x,y:p.y,cropX:avatarCrop143?.x||0,cropY:avatarCrop143?.y||0}}else start=null};
+  stage.addEventListener('pointerup',end);stage.addEventListener('pointercancel',end);
+}
+optimizeAvatar140=function(file){return new Promise((resolve,reject)=>{
+  const s=avatarCrop143?.file===file?avatarCrop143:{file,zoom:1,x:0,y:0},url=s.url||URL.createObjectURL(file),image=new Image();
+  image.onload=()=>{try{const side=Math.min(image.naturalWidth,image.naturalHeight)/Math.max(1,s.zoom||1),freeX=Math.max(0,image.naturalWidth-side),freeY=Math.max(0,image.naturalHeight-side),stage=document.getElementById('avatarCropStage143'),display=stage?.clientWidth||208,base=Math.max(display/image.naturalWidth,display/image.naturalHeight),left=Math.max(0,Math.min(freeX,freeX/2-(s.x||0)/(base*(s.zoom||1)))),top=Math.max(0,Math.min(freeY,freeY/2-(s.y||0)/(base*(s.zoom||1)))),canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;canvas.getContext('2d',{alpha:false}).drawImage(image,left,top,side,side,0,0,512,512);canvas.toBlob(blob=>{URL.revokeObjectURL(url);if(!blob)return reject(Error('No se pudo optimizar la foto.'));resolve(new File([blob],'avatar.webp',{type:'image/webp'}))},'image/webp',.78)}catch(e){URL.revokeObjectURL(url);reject(e)}};
+  image.onerror=()=>{URL.revokeObjectURL(url);reject(Error('No se pudo leer la foto.'))};image.src=url;
+})};
 function releaseUnread142(){return !notificationRead142(['✦','','','release142'])}
 function openRelease142(){localStorage.setItem(releaseKey142(),String(Date.now()));closeModal();render();socialModal133('Novedades de RITMO',`<div class="release-badge140">v${RITMO_RELEASE142.version}</div><h3>${RITMO_RELEASE142.title}</h3><p class="muted">${RITMO_RELEASE142.description}</p><ul class="release-list140">${RITMO_RELEASE142.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul><button class="primary" onclick="closeModal();render()">Entendido</button>`)}
 activityFeed=function(){const items=activityPersistBase141();items.unshift(['✦',RITMO_RELEASE142.title,'Descubre qué ha cambiado en la versión '+RITMO_RELEASE142.version+'.','release142']);return items.filter(notificationAvailable142)};
