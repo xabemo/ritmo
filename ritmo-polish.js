@@ -70,7 +70,7 @@ openActivity139=function(target){if(target==='release140'){openRelease140();retu
 const todayReleaseBase140=todayCenter;
 todayCenter=function(gig,owed){const items=todayReleaseBase140(gig,owed);if(releaseUnread140())items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE140.version+'.','openRelease140()']);return items};
 const homeReleaseBase140=home;
-function dailySlogan140(){const phrases=['Hoy vas a tu… RITMO.','Recuerda: cada uno necesita su… RITMO.','Con calma, con música y a tu… RITMO.','Organiza el día. Disfruta el RITMO.','Si hay bolo, hay RITMO.','Todo entra mejor cuando vas a tu… RITMO.','Que el día suene a tu… RITMO.'];const day=Math.floor(new Date().setHours(0,0,0,0)/86400000);return phrases[Math.abs(day)%phrases.length]}
+function dailySlogan140(){const phrases=['Hoy vas a tu… RITMO.','Recuerda: cada uno necesita su… RITMO.','Con calma, con música y a tu… RITMO.','Organiza el día. Disfruta el RITMO.','Si hay bolo, hay RITMO.','Todo entra mejor cuando vas a tu… RITMO.','Que el día suene a tu… RITMO.','Que el RITMO no pare, no pare, no…','Café, cables y a tu… RITMO.','Hoy el caos va con metrónomo.','Si llegas a tiempo, que no se note.','Un bolo a la vez. Y si hay dos, respira.','Afinado, organizado y con batería.','La prueba de sonido también cuenta como cardio.','No es prisa: es tempo allegro.','Todo bajo control. Más o menos.','La furgoneta sabe el camino. Tú lleva el RITMO.','Tu agenda tiene más compases que excusas.','Que no falte nada… salvo tiempo para montar.','Hoy toca. Y no solo música.','Respira: aún queda margen. Probablemente.','Un cable menos perdido, un día más feliz.','Llegar puntual también es una forma de arte.'];const day=Math.floor(new Date().setHours(0,0,0,0)/86400000);return phrases[Math.abs(day)%phrases.length]}
 home=function(){let html=homeReleaseBase140();html=html.replace(/(<div class="home-greeting"><h1>[\s\S]*?<\/h1><div class="date">[\s\S]*?<\/div>)/,`$1<div class="daily-slogan140">${dailySlogan140()}</div>`);if(releaseUnread140())html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
 
 /* RITMO 1.41: los avisos vistos se conservan entre aperturas y el avatar superior es circular. */
@@ -231,3 +231,4 @@ const todayReleaseBase142=todayCenter;
 todayCenter=function(gig,owed){const items=todayReleaseBase142(gig,owed);if(releaseUnread142())items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE142.version+'.','openRelease142()']);return items};
 const homeReleaseBase142=home;
 home=function(){let html=homeReleaseBase142();if(releaseUnread142())html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
+
