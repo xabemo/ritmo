@@ -72,3 +72,30 @@ todayCenter=function(gig,owed){const items=todayReleaseBase140(gig,owed);if(rele
 const homeReleaseBase140=home;
 function dailySlogan140(){const phrases=['Hoy vas a tu… RITMO.','Recuerda: cada uno necesita su… RITMO.','Con calma, con música y a tu… RITMO.','Organiza el día. Disfruta el RITMO.','Si hay bolo, hay RITMO.','Todo entra mejor cuando vas a tu… RITMO.','Que el día suene a tu… RITMO.'];const day=Math.floor(new Date().setHours(0,0,0,0)/86400000);return phrases[Math.abs(day)%phrases.length]}
 home=function(){let html=homeReleaseBase140();html=html.replace(/(<div class="home-greeting"><h1>[\s\S]*?<\/h1><div class="date">[\s\S]*?<\/div>)/,`$1<div class="daily-slogan140">${dailySlogan140()}</div>`);if(releaseUnread140())html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
+
+/* RITMO 1.41: los avisos vistos se conservan entre aperturas y el avatar superior es circular. */
+function notificationSeenKey141(){return `ritmo-notification-seen-v141-${session?.user?.id||'guest'}`}
+function notificationSeenMap141(){try{return JSON.parse(localStorage.getItem(notificationSeenKey141())||'{}')}catch{return {}}}
+function notificationSignature141(item){return [item?.[0]||'',item?.[1]||'',item?.[2]||'',item?.[3]||''].join('|')}
+function markActivityItemsSeen141(items){if(!session?.user?.id)return;const seen=notificationSeenMap141(),now=Date.now();for(const item of items||[]){const target=String(item?.[3]||'');if(target==='release140')localStorage.setItem(releaseKey140(),'seen');else if(target==='release141')localStorage.setItem(releaseKey141(),'seen');else seen[notificationSignature141(item)]=now}const recent=Object.entries(seen).filter(([,at])=>Number(at)>now-1000*60*60*24*45).slice(-250);localStorage.setItem(notificationSeenKey141(),JSON.stringify(Object.fromEntries(recent)))}
+const activityPersistBase141=activityFeed;
+activityFeed=function(){const seen=notificationSeenMap141();return activityPersistBase141().filter(item=>String(item?.[3]||'').startsWith('release')||!seen[notificationSignature141(item)])};
+const activityLastSeenBase141=activityLastSeen;
+activityLastSeen=function(){const local=localStorage.getItem(activityStorageKey()),remote=syncedActivitySeenAt,localTime=Date.parse(local||''),remoteTime=Date.parse(remote||'');if(Number.isFinite(localTime)||Number.isFinite(remoteTime))return Number.isFinite(localTime)&&(!Number.isFinite(remoteTime)||localTime>=remoteTime)?local:remote;return activityLastSeenBase141()};
+const loadNotificationStateBase141=loadNotificationState;
+loadNotificationState=async function(){const local=localStorage.getItem(activityStorageKey()),localTime=Date.parse(local||'');await loadNotificationStateBase141();const remoteTime=Date.parse(syncedActivitySeenAt||'');if(Number.isFinite(localTime)&&(!Number.isFinite(remoteTime)||localTime>remoteTime))syncedActivitySeenAt=local};
+const openNotificationsBase141=openNotifications;
+openNotifications=function(){const visible=activityFeed();openNotificationsBase141();markActivityItemsSeen141(visible)};
+
+const RITMO_RELEASE141={version:'1.41',title:'Notificaciones más fiables',description:'Los avisos ya vistos no vuelven al cerrar RITMO y el avatar superior se muestra en círculo.',changes:['La campana recuerda los avisos que ya has consultado, incluso al cerrar y volver a abrir la app.','Las acciones que siguen pendientes permanecen disponibles en el Centro del día.','La foto de tu cuenta ahora se presenta redonda también en la cabecera.']};
+function releaseKey141(){return `ritmo-release-${RITMO_RELEASE141.version}-${session?.user?.id||'guest'}`}
+function releaseUnread141(){return Boolean(session?.user?.id)&&localStorage.getItem(releaseKey141())!=='seen'}
+function openRelease141(){localStorage.setItem(releaseKey141(),'seen');closeModal();render();socialModal133('Novedades de RITMO',`<div class="release-badge140">v${RITMO_RELEASE141.version}</div><h3>${RITMO_RELEASE141.title}</h3><p class="muted">${RITMO_RELEASE141.description}</p><ul class="release-list140">${RITMO_RELEASE141.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul><button class="primary" onclick="closeModal();render()">Entendido</button>`) }
+const activityReleaseBase141=activityFeed;
+activityFeed=function(){const items=activityReleaseBase141();if(releaseUnread141())items.unshift(['✦',RITMO_RELEASE141.title,'Descubre qué ha cambiado en la versión '+RITMO_RELEASE141.version+'.','release141']);return items};
+const openActivityReleaseBase141=openActivity139;
+openActivity139=function(target){if(target==='release141'){openRelease141();return}openActivityReleaseBase141(target)};
+const todayReleaseBase141=todayCenter;
+todayCenter=function(gig,owed){const items=todayReleaseBase141(gig,owed);if(releaseUnread141())items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE141.version+'.','openRelease141()']);return items};
+const homeReleaseBase141=home;
+home=function(){let html=homeReleaseBase141();if(releaseUnread141())html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
