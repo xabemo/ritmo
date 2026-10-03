@@ -404,3 +404,63 @@ const todayReleaseBase149=todayCenter;
 todayCenter=function(gig,owed){const items=todayReleaseBase149(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead149(['✦','','','release149']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE149.version+'.','openRelease149()']);return items};
 const homeReleaseBase149=home;
 home=function(){let html=homeReleaseBase149();if(!notificationRead149(['✦','','','release149']))html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
+
+/* RITMO 1.50: tarifa positiva fiable y Mis bolos en agenda mensual compacta. */
+function kmRateRows150(date,projectId=''){
+  const day=String(date||localDate()).slice(0,10);
+  const rows=(kmPrices||[]).filter(row=>Number.isFinite(Number(row?.price_per_km))&&Number(row.price_per_km)>0).sort((a,b)=>String(b.effective_from||'').localeCompare(String(a.effective_from||''))||String(b.created_at||'').localeCompare(String(a.created_at||'')));
+  const project=String(projectId||'');
+  const specific=project?rows.filter(row=>String(row.project_id||'')===project):[];
+  const general=rows.filter(row=>!row.project_id);
+  const current=group=>group.find(row=>String(row.effective_from||'').slice(0,10)<=day);
+  return {specific,general,currentSpecific:current(specific),currentGeneral:current(general)};
+}
+activeKmPrice=function(date,projectId=''){
+  const rates=kmRateRows150(date,projectId);
+  /* Una tarifa 0 significa «no aplicar tarifa». Si el bolo sí cobra desplazamiento,
+     se utiliza la última tarifa positiva del proyecto o la general. */
+  const chosen=rates.currentSpecific||rates.currentGeneral||rates.specific[0]||rates.general[0];
+  return Number(chosen?.price_per_km||0);
+};
+function boloCompactRow150(g){
+  const project=projectById(g.project_id)||{name:'Proyecto',color:'#7b4bb7'},readiness=boloReadiness(g),percent=readiness.total?Math.round(readiness.done/readiness.total*100):0;
+  const date=new Date(`${g.event_date}T12:00:00`),day=String(date.getDate()).padStart(2,'0'),weekday=date.toLocaleDateString('es-ES',{weekday:'short'}).replace('.','');
+  const amount=g.status==='cancelado'?0:boloAmounts(g).total;
+  const label=g.status==='reserva'?'Previsto':'Total';
+  return `<button class="bolo-agenda-row150 project-rail1321" style="--project-color:${esc(projectRailColor1321(g))}" onclick="goGig('${g.id}')"><span class="bolo-agenda-date150"><b>${day}</b><small>${esc(weekday)}</small></span><span class="bolo-agenda-copy150"><b>${esc(project.name)}</b><small>${esc(g.location||'Ubicación pendiente')} · ${esc(boloStatusLabel(g.status))}</small><span class="bolo-agenda-meta150"><strong>${label} ${money(amount)}</strong><span class="bolo-agenda-progress150"><i style="width:${percent}%"></i></span><em>${percent}%</em></span></span><span class="arrow" aria-hidden="true">›</span></button>`;
+}
+function boloMonth150(month,rows){
+  const now=localDate().slice(0,7),past=month<now,date=new Date(`${month}-01T12:00:00`),label=date.toLocaleDateString('es-ES',{month:'long',year:'numeric'}),title=label.charAt(0).toUpperCase()+label.slice(1);
+  const confirmed=rows.filter(row=>row.status==='confirmado'),total=confirmed.reduce((sum,row)=>sum+boloAmounts(row).total,0);
+  return `<details class="bolos-month150" ${past?'':'open'}><summary><span><b>${esc(title)}</b><small>${rows.length} ${rows.length===1?'bolo':'bolos'}</small></span><strong>${confirmed.length?money(total):'—'}</strong><span class="bolos-month-chevron150">⌄</span></summary><div class="bolos-month-list150">${rows.map(boloCompactRow150).join('')}</div></details>`;
+}
+bolosView=function(){
+  const filter=window.bolosFilter||'activos',projectId=window.bolosProject||'',query=(window.ritmoBoloSearch131||'').trim().toLocaleLowerCase('es');
+  const matched=gigs.filter(g=>{
+    const project=projectById(g.project_id)||{name:''};
+    return (!projectId||String(g.project_id)===String(projectId))&&(!query||`${g.location||''} ${project.name||''}`.toLocaleLowerCase('es').includes(query));
+  }).filter(g=>filter==='cancelado'?g.status==='cancelado':g.status!=='cancelado');
+  const groups={};
+  matched.sort((a,b)=>String(a.event_date).localeCompare(String(b.event_date))).forEach(g=>{const key=String(g.event_date).slice(0,7);(groups[key]??=[]).push(g)});
+  const now=localDate().slice(0,7),keys=Object.keys(groups).sort((a,b)=>{const aPast=a<now,bPast=b<now;if(aPast!==bPast)return aPast?1:-1;return aPast?b.localeCompare(a):a.localeCompare(b)});
+  const reservations=gigs.filter(g=>g.status==='reserva'&&(!projectId||String(g.project_id)===String(projectId))).length;
+  return `${pageTitle('Mis bolos')}<p class="muted page-intro">Agenda de actuaciones por meses.</p><button class="bolos-reservations150" onclick="go('reservations')"><span>${navGlyph('reservations')}<b>Reservas</b></span><strong>${reservations} ›</strong></button><label class="bolo-search bolo-search150">Buscar por localidad o proyecto<input id="boloSearch131" type="search" value="${esc(window.ritmoBoloSearch131||'')}" oninput="searchBolos131(this.value)"></label><div class="toolbar"><select aria-label="Filtrar bolos por proyecto" onchange="window.bolosProject=this.value;render()"><option value="">Todos los proyectos</option>${projects.map(p=>`<option value="${esc(p.id)}" ${String(p.id)===String(projectId)?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div><div class="filter-chips" aria-label="Estado del bolo"><button class="mini ${filter==='activos'?'active':''}" onclick="setBolosFilter('activos')">Activos <span>${matched.filter(g=>g.status!=='cancelado').length}</span></button><button class="mini ${filter==='cancelado'?'active':''}" onclick="setBolosFilter('cancelado')">Cancelados <span>${gigs.filter(g=>g.status==='cancelado').length}</span></button></div>${keys.length?keys.map(key=>boloMonth150(key,groups[key])).join(''):`<div class="empty-state"><span aria-hidden="true">♫</span><h2>No hay bolos con este filtro</h2><p class="muted">Prueba otro filtro o añade una nueva fecha.</p><button class="secondary" onclick="modalBolo()">＋ Añadir bolo</button></div>`}`;
+};
+
+const RITMO_RELEASE150={version:'1.50',title:'RITMO se ha actualizado',description:'El desplazamiento prioriza siempre una tarifa positiva y Mis bolos estrena vista de agenda mensual.',changes:['Una tarifa configurada a 0 ya no anula una tarifa positiva cuando el bolo cobra desplazamiento.','Mis bolos agrupa las actuaciones por mes en una lista más compacta.','Los meses pasados aparecen plegados y se abren al tocarlos.']};
+function releaseKey150(){return `ritmo-release-${RITMO_RELEASE150.version}-${session?.user?.id||'guest'}`}
+function notificationReadAt150(item){return String(item?.[3]||'')==='release150'?Number(localStorage.getItem(releaseKey150())||0):notificationReadAt149(item)}
+function notificationRead150(item){return notificationReadAt150(item)>0}
+function notificationAvailable150(item){const seen=notificationReadAt150(item);return !seen||Date.now()-seen<NOTICE_RETENTION142}
+function openRelease150(){localStorage.setItem(releaseKey150(),String(Date.now()));closeModal();render();socialModal133('Novedades de RITMO',`<div class="release-badge140">v${RITMO_RELEASE150.version}</div><h3>${RITMO_RELEASE150.title}</h3><p class="muted">${RITMO_RELEASE150.description}</p><ul class="release-list140">${RITMO_RELEASE150.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul><button class="primary" onclick="closeModal();render()">Entendido</button>`)}
+const activityBase150=activityFeed;
+activityFeed=function(){const items=activityBase150().filter(item=>String(item?.[3]||'')!=='release149');items.unshift(['✦',RITMO_RELEASE150.title,'Descubre qué ha cambiado en la versión '+RITMO_RELEASE150.version+'.','release150']);return items.filter(notificationAvailable150)};
+activityAlertCount=function(){return activityFeed().filter(item=>!notificationRead150(item)).length};
+const openActivityBase150=openActivity139;
+openActivity139=function(target){if(target==='release150'){openRelease150();return}openActivityBase150(target)};
+function markActivityItemsSeen150(items){const normal=(items||[]).filter(item=>String(item?.[3]||'')!=='release150');markActivityItemsSeen149(normal);if((items||[]).some(item=>String(item?.[3]||'')==='release150'))localStorage.setItem(releaseKey150(),String(Date.now()))}
+openNotifications=function(){const feed=activityFeed(),wasRead=feed.map(notificationRead150);markNotificationsSeen();markActivityItemsSeen150(feed);document.body.insertAdjacentHTML('beforeend',`<div class="modal-bg" id="modal"><div class="modal activity-modal"><div class="modal-head"><div><h2>Notificaciones</h2><div class="muted">Las leídas se conservan durante 24 horas.</div></div><button onclick="closeModal();render()">✕</button></div>${feed.length?`<div class="activity-list">${feed.map((item,index)=>`<button class="activity-item ${wasRead[index]?'is-read142':''}" onclick="openActivity139('${esc(item[3])}')"><span class="activity-icon">${item[0]}</span><div><b>${item[1]}</b><span>${item[2]}</span>${wasRead[index]?'<em>Leída</em>':'<em>Nueva</em>'}</div><span aria-hidden="true">›</span></button>`).join('')}</div>`:`<div class="activity-empty">✓<br><br>No hay novedades recientes.</div>`}</div></div>`) };
+const todayReleaseBase150=todayCenter;
+todayCenter=function(gig,owed){const items=todayReleaseBase150(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead150(['✦','','','release150']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE150.version+'.','openRelease150()']);return items};
+const homeReleaseBase150=home;
+home=function(){let html=homeReleaseBase150();if(!notificationRead150(['✦','','','release150']))html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
