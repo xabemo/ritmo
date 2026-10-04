@@ -904,5 +904,48 @@ function markActivityItemsSeen157(items){const normal=(items||[]).filter(item=>S
 openNotifications=function(){const feed=activityFeed(),wasRead=feed.map(notificationRead157);markNotificationsSeen();markActivityItemsSeen157(feed);document.body.insertAdjacentHTML('beforeend',`<div class="modal-bg" id="modal"><div class="modal activity-modal"><div class="modal-head"><div><h2>Notificaciones</h2><div class="muted">Las leídas se conservan durante 24 horas.</div></div><button onclick="closeModal();render()">✕</button></div>${feed.length?`<div class="activity-list">${feed.map((item,index)=>`<button class="activity-item ${wasRead[index]?'is-read142':''}" onclick="openActivity139('${esc(item[3])}')"><span class="activity-icon">${item[0]}</span><div><b>${item[1]}</b><span>${item[2]}</span>${wasRead[index]?'<em>Leída</em>':'<em>Nueva</em>'}</div><span aria-hidden="true">›</span></button>`).join('')}</div>`:`<div class="activity-empty">✓<br><br>No hay novedades recientes.</div>`}</div></div>`) };
 const todayReleaseBase157=todayCenter;
 todayCenter=function(gig,owed){const items=todayReleaseBase157(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead157(['✦','','','release157']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE157.version+'.','openRelease157()']);return items};
+
+/* v1.58 — Las fechas se guardan en ISO, pero se leen siempre en formato español.
+   Se transforma solo texto visible: nunca atributos ni campos <input type="date">. */
+function formatVisibleDates158(scope=document.body){
+  if(!scope)return;
+  const walker=document.createTreeWalker(scope,NodeFilter.SHOW_TEXT),nodes=[];
+  let node;
+  while((node=walker.nextNode())){
+    const tag=node.parentElement?.tagName;
+    if(tag==='SCRIPT'||tag==='STYLE'||tag==='TEXTAREA')continue;
+    if(/\b\d{4}-\d{2}-\d{2}\b/.test(node.nodeValue||''))nodes.push(node);
+  }
+  nodes.forEach(n=>{n.nodeValue=n.nodeValue.replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g,'$3-$2-$1')});
+}
+formatVisibleDates158();
+new MutationObserver(records=>records.forEach(record=>{
+  if(record.type==='characterData')formatVisibleDates158(record.target.parentElement);
+  else record.addedNodes.forEach(node=>{if(node.nodeType===Node.ELEMENT_NODE)formatVisibleDates158(node);else if(node.nodeType===Node.TEXT_NODE)formatVisibleDates158(node.parentElement)});
+})).observe(document.body,{childList:true,subtree:true,characterData:true});
+
+const RITMO_RELEASE158={version:'1.58',title:'RITMO se ha actualizado',description:'Las fechas ya se muestran en formato día-mes-año.',changes:['Las fechas visibles de bolos, cobros, gastos y paneles usan dd-mm-aaaa.','Los formularios conservan el selector de fecha nativo para guardar los datos correctamente.']};
+function releaseKey158(){return `ritmo-release-${RITMO_RELEASE158.version}-${session?.user?.id||'guest'}`}
+function notificationReadAt158(item){return String(item?.[3]||'')==='release158'?Number(localStorage.getItem(releaseKey158())||0):notificationReadAt157(item)}
+function notificationRead158(item){return notificationReadAt158(item)>0}
+function notificationAvailable158(item){const seen=notificationReadAt158(item);return !seen||Date.now()-seen<NOTICE_RETENTION142}
+function openRelease158(){localStorage.setItem(releaseKey158(),String(Date.now()));closeModal();render();socialModal133('Novedades de RITMO',`<div class="release-badge140">v${RITMO_RELEASE158.version}</div><h3>${RITMO_RELEASE158.title}</h3><p class="muted">${RITMO_RELEASE158.description}</p><ul class="release-list140">${RITMO_RELEASE158.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul><button class="primary" onclick="closeModal();render()">Entendido</button>`) }
+const activityBase158=activityFeed;
+activityFeed=function(){const items=activityBase158().filter(item=>String(item?.[3]||'')!=='release157');items.unshift(['✦',RITMO_RELEASE158.title,'Descubre qué ha cambiado en la versión '+RITMO_RELEASE158.version+'.','release158']);return items.filter(notificationAvailable158)};
+activityAlertCount=function(){return activityFeed().filter(item=>!notificationRead158(item)).length};
+const openActivityBase158=openActivity139;
+openActivity139=function(target){if(target==='release158'){openRelease158();return}openActivityBase158(target)};
+function markActivityItemsSeen158(items){const normal=(items||[]).filter(item=>String(item?.[3]||'')!=='release158');markActivityItemsSeen157(normal);if((items||[]).some(item=>String(item?.[3]||'')==='release158'))localStorage.setItem(releaseKey158(),String(Date.now()))}
+openNotifications=function(){const feed=activityFeed(),wasRead=feed.map(notificationRead158);markNotificationsSeen();markActivityItemsSeen158(feed);document.body.insertAdjacentHTML('beforeend',`<div class="modal-bg" id="modal"><div class="modal activity-modal"><div class="modal-head"><div><h2>Notificaciones</h2><div class="muted">Las leídas se conservan durante 24 horas.</div></div><button onclick="closeModal();render()">✕</button></div>${feed.length?`<div class="activity-list">${feed.map((item,index)=>`<button class="activity-item ${wasRead[index]?'is-read142':''}" onclick="openActivity139('${esc(item[3])}')"><span class="activity-icon">${item[0]}</span><div><b>${item[1]}</b><span>${item[2]}</span>${wasRead[index]?'<em>Leída</em>':'<em>Nueva</em>'}</div><span aria-hidden="true">›</span></button>`).join('')}</div>`:`<div class="activity-empty">✓<br><br>No hay novedades recientes.</div>`}</div></div>`) };
+const todayReleaseBase158=todayCenter;
+todayCenter=function(gig,owed){const items=todayReleaseBase158(gig,owed).filter(item=>!String(item?.[3]||'').includes('openRelease'));if(!notificationRead158(['✦','','','release158']))items.unshift(['✦','Hay novedades en RITMO','Consulta los cambios de la versión '+RITMO_RELEASE158.version+'.','openRelease158()']);return items};
+
+/* Los avisos de cobros abren siempre la pantalla económica, incluso si proceden
+   de una notificación que se creó con una versión anterior de la aplicación. */
+const openActivityEconomy158=openActivity139;
+openActivity139=function(target){
+  if(['economy','payments','cobros'].includes(String(target||'').toLowerCase())){closeModal();go('economy');return}
+  openActivityEconomy158(target);
+};
 const homeReleaseBase156=home;
 home=function(){let html=homeReleaseBase156();if(!notificationRead156(['✦','','','release156']))html=html.replace('class="card today-center"','class="card today-center attention135"');return html};
